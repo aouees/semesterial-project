@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:semesterial_project_admin/Screens/home_screen.dart';
-
+// TODO: do state management for all screen &&
 void main() {
   runApp(const MyApp());
 }
