@@ -39,6 +39,8 @@ dependencies:
   dropdown_plus: ^0.0.9
   drop_down_list: ^0.0.4
   smart_grid_view_nls: ^0.2.2
+  bloc: ^8.1.0
+  flutter_bloc: ^8.1.1
 
 dev_dependencies:
   flutter_test:
