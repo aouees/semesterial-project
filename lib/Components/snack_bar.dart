@@ -1,14 +1,14 @@
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:semesterial_project_admin/Constants/colors.dart';
 
-mySnackBar(String content, BuildContext context) {
+mySnackBar(String content, BuildContext context, Color background, Color textColor) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
     content: Text(
       content,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: textColor),
     ),
-    backgroundColor: Colors.red,
-    duration: const Duration(seconds: 1),
+    backgroundColor: background,
+    duration: const Duration(milliseconds: 1500),
   ));
 }

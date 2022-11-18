@@ -23,7 +23,11 @@ class _TripManagerScreenState extends State<TripManagerScreen> {
   Widget build(BuildContext context) {
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context, state) {
-        mySnackBar(state.toString(), context);
+        if (state is SuccessState) {
+          mySnackBar(state.toString(), context, Colors.green, Colors.white);
+        } else {
+          mySnackBar(state.toString(), context, Colors.red, Colors.black);
+        }
       },
       builder: (context, state) {
         return DefaultTabController(

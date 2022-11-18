@@ -41,6 +41,7 @@ dependencies:
   smart_grid_view_nls: ^0.2.2
   bloc: ^8.1.0
   flutter_bloc: ^8.1.1
+  mysql1: ^0.20.0
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:semesterial_project_admin/Constants/colors.dart';
 import 'package:semesterial_project_admin/MyCubit/app_cubit.dart';
 import 'package:semesterial_project_admin/Screens/home_screen.dart';
 
-// TODO: do state management for all screen &&
+import 'Components/snack_bar.dart';
+import 'MyCubit/app_states.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -16,9 +19,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<AppCubit>(
       create: (context) => AppCubit(),
-      child: const MaterialApp(
+      child: MaterialApp(
         title: 'Bus Reservation Manager',
-        home: HomeScreen(),
+        home: BlocConsumer<AppCubit, AppStates>(
+          listener: (context, state) {},
+          builder: (context, state) {
+            if (state is InitialState) {
+              AppCubit.get(context).connect();
+              return const Center(child: CircularProgressIndicator(
+                  color: MyColors.blue, backgroundColor: MyColors.yalow),);
+            }
+            return HomeScreen();
+          },
+        ),
       ),
     );
   }
