@@ -4,14 +4,16 @@ import '../Constants/colors.dart';
 
 Widget myScaffold({
   required BuildContext context,
-  required Widget header,
+  Widget? header,
   required Widget body,
   Widget? footer,
 }) {
-  var widgets = [
-    header,
+  List<Widget> widgets = [
     Expanded(child: body),
   ];
+  if (header != null) {
+    widgets.insert(0, header);
+  }
   if (footer != null) {
     widgets.add(footer);
   }

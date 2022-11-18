@@ -25,10 +25,10 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    AppCubit appCubit = AppCubit.get(context);
+    AppCubit myDB = AppCubit.get(context);
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context, state) {
-        if (state is SuccessState) {
+        if (state.type == StateType.successState) {
           mySnackBar(state.toString(), context, Colors.green, Colors.white);
         } else {
           mySnackBar(state.toString(), context, Colors.red, Colors.black);
@@ -55,13 +55,8 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
                 myValues('عدد المقاعد', '25'),
               ], actions: [
                 IconButton(
-                    onPressed: () {},
-                    color: MyColors.blue,
-                    icon: const Icon(Icons.delete_forever)),
-                IconButton(
-                    onPressed: () {},
-                    color: MyColors.blue,
-                    icon: const Icon(Icons.edit)),
+                    onPressed: () {}, color: MyColors.blue, icon: const Icon(Icons.delete_forever)),
+                IconButton(onPressed: () {}, color: MyColors.blue, icon: const Icon(Icons.edit)),
               ]),
             )),
           ),
@@ -70,7 +65,6 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
             title: 'اضافة باص جديد',
             icon: Icons.add,
             onPressed: () {
-              AppCubit.get(context).emit(InitialState());
               showBusDialog(context);
             },
           ),

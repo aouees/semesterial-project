@@ -1,35 +1,110 @@
-import 'package:semesterial_project_admin/MyCubit/app_cubit.dart';
+enum StateType { successState, errorState }
 
 abstract class AppStates {
+  StateType get type;
+
+  String get msg;
+
   @override
   String toString() {
-    return stateName;
+    return msg;
   }
-
-  String get stateName;
 }
 
 class InitialState extends AppStates {
   @override
-  String get stateName => 'InitialState';
+  String get msg => 'InitialState';
+
+  @override
+  StateType get type => StateType.successState;
 }
 
-class SuccessState extends AppStates {
+class Connecting extends AppStates {
+  @override
+  StateType type;
+
+  Connecting(this.type, this.msg);
+
+  @override
   String msg;
-
-  SuccessState(this.msg);
-
-  @override
-  String get stateName => "Success : $msg";
 }
 
-class ErrorState extends AppStates {
-  late String msg;
+class Connected extends AppStates {
+  @override
+  StateType type;
 
-  ErrorState(this.msg);
+  Connected(this.type, this.msg);
 
   @override
-  String get stateName => "Error : $msg";
+  String msg;
 }
 
+class DisConnecting extends AppStates {
+  @override
+  StateType type;
 
+  DisConnecting(this.type, this.msg);
+
+  @override
+  String msg;
+}
+
+class DisConnected extends AppStates {
+  @override
+  StateType type;
+
+  DisConnected(this.type, this.msg);
+
+  @override
+  String msg;
+}
+
+class SelectedData extends AppStates {
+  @override
+  StateType type;
+
+  SelectedData(this.type, this.msg);
+
+  @override
+  String msg;
+}
+
+class SelectingData extends AppStates {
+  @override
+  StateType type;
+
+  SelectingData(this.type, this.msg);
+
+  @override
+  String msg;
+}
+
+class InsertedData extends AppStates {
+  @override
+  StateType type;
+
+  InsertedData(this.type, this.msg);
+
+  @override
+  String msg;
+}
+
+class DeletedData extends AppStates {
+  @override
+  StateType type;
+
+  DeletedData(this.type, this.msg);
+
+  @override
+  String msg;
+}
+
+class UpdatedData extends AppStates {
+  @override
+  StateType type;
+
+  UpdatedData(this.type, this.msg);
+
+  @override
+  String msg;
+}

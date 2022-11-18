@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:semesterial_project_admin/MyCubit/myData.dart';
+import 'package:semesterial_project_admin/Screens/wait_screen.dart';
 import '../Components/button.dart';
 import '../Components/dialog.dart';
 import '../Components/scaffold.dart';
@@ -8,11 +10,12 @@ import '../Constants/colors.dart';
 
 import '../Components/card.dart';
 import '../Components/forms_items.dart';
+import '../Models/driver.dart';
 import '../MyCubit/app_cubit.dart';
 import '../MyCubit/app_states.dart';
 
 class DriverManagementScreen extends StatefulWidget {
-  const DriverManagementScreen({Key? key}) : super(key: key);
+  DriverManagementScreen({Key? key}) : super(key: key);
 
   @override
   State<DriverManagementScreen> createState() => _DriverManagementScreenState();
@@ -24,16 +27,30 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
   final _phoneNumberController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    AppCubit.get(context).getDrivers();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context, state) {
-        if (state is SuccessState) {
+        if (state.type == StateType.successState) {
           mySnackBar(state.toString(), context, Colors.green, Colors.white);
         } else {
           mySnackBar(state.toString(), context, Colors.red, Colors.black);
         }
       },
       builder: (context, state) {
+        AppCubit myDB = AppCubit.get(context);
+        if (state is SelectedData && state.type == StateType.errorState) {
+          myDB.getDrivers();
+        }
+        if (state is SelectingData) {
+          return const WaitScreen();
+        }
+        List<int> myKeys = MyData.driversList.keys.toList();
         return myScaffold(
             context: context,
             header: myAppBar(
@@ -44,29 +61,35 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                       Navigator.pop(context);
                     },
                     icon: const Icon(Icons.arrow_forward_ios))),
-            body: SingleChildScrollView(
-              child: Column(
-                  children: List.generate(
-                10,
-                (index) => myCard(values: [
-                  myValues('الاسم', 'ابو محمد'),
-                  myValues('رقم الهاتف', '0974621589'),
+            body: ListView.builder(
+              itemCount: MyData.driversList.length,
+              itemBuilder: (context, index) {
+                Driver driver = MyData.driversList[myKeys[index]]!;
+                return myCard(values: [
+                  myValues('الاسم', driver.driverName),
+                  myValues('رقم الهاتف', driver.driverPhone),
                 ], actions: [
                   IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        myDB.deleteDriver(driver);
+                      },
                       color: MyColors.blue,
                       icon: const Icon(Icons.delete_forever)),
                   IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _nameController.text = driver.driverName;
+                        _phoneNumberController.text = driver.driverPhone;
+                        showDriverDialog(context: context, oldDriver: driver);
+                      },
                       color: MyColors.blue,
                       icon: const Icon(Icons.edit)),
-                ]),
-              )),
+                ]);
+              },
             ),
             footer: myGradiantButton(
                 context: context,
                 onPressed: () {
-                  showDriverDialog(context);
+                  showDriverDialog(context: context);
                 },
                 title: 'إضافة سائق جديد',
                 icon: Icons.add));
@@ -74,22 +97,23 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
     );
   }
 
-  void showDriverDialog(BuildContext context) {
+  void showDriverDialog({required BuildContext context, Driver? oldDriver}) {
+    AppCubit myDB = AppCubit.get(context);
+    var formKey = GlobalKey<FormState>();
+
     myDialog(
         context: context,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Center(
-              child: Text(
-                'إضافة سائق جديد',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Form(
-                child: Column(
+        body: Form(
+            key: formKey,
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const Center(
+                  child: Text(
+                    'إضافة سائق جديد',
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                ),
                 defaultTextFormField(
                   controller: _nameController,
                   myHintText: 'اسم السائق',
@@ -114,13 +138,22 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                 ),
                 myNormalButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      if (formKey.currentState!.validate()) {
+                        Driver newDriver = Driver(
+                            driverName: _nameController.text,
+                            driverPhone: _phoneNumberController.text);
+                        if (oldDriver == null) {
+                          myDB.insertDriver(newDriver);
+                        } else {
+                          newDriver.driverId = oldDriver.driverId;
+                          myDB.updateDriver(newDriver);
+                        }
+                        Navigator.pop(context);
+                      }
                     },
                     title: 'احفظ',
                     icon: Icons.save_outlined)
               ],
-            ))
-          ],
-        ));
+            )));
   }
 }

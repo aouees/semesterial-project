@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:semesterial_project_admin/Constants/colors.dart';
 import 'package:semesterial_project_admin/MyCubit/app_cubit.dart';
 import 'package:semesterial_project_admin/Screens/home_screen.dart';
-
-import 'Components/snack_bar.dart';
+import 'package:semesterial_project_admin/Screens/wait_screen.dart';
 import 'MyCubit/app_states.dart';
 
 void main() {
@@ -24,10 +22,12 @@ class MyApp extends StatelessWidget {
         home: BlocConsumer<AppCubit, AppStates>(
           listener: (context, state) {},
           builder: (context, state) {
-            if (state is InitialState) {
+            if (state is InitialState ||
+                (state is Connected && state.type == StateType.errorState)) {
               AppCubit.get(context).connect();
-              return const Center(child: CircularProgressIndicator(
-                  color: MyColors.blue, backgroundColor: MyColors.yalow),);
+            }
+            if (state is Connecting) {
+              return const WaitScreen();
             }
             return HomeScreen();
           },
