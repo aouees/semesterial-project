@@ -10,12 +10,13 @@ class AppCubit extends Cubit<AppStates> {
 
   static AppCubit get(context) => BlocProvider.of(context);
 
-  MySqlConnection? conn;
+  MySqlConnection? myDB;
 
   Future<void> connect() async {
     emit(Connecting(StateType.successState, "Connecting"));
+
     await MySqlConnection.connect(ConnectionDB.setting).then((value) {
-      conn = value;
+      myDB = value;
       emit(Connected(StateType.successState, "Connected"));
     }).catchError((error, stackTrace) {
       emit(Connected(StateType.errorState, error.toString()));
@@ -25,7 +26,7 @@ class AppCubit extends Cubit<AppStates> {
 
   Future<void> disConnect() async {
     emit(DisConnecting(StateType.successState, "DisConnecting"));
-    await conn!.close().then((value) {
+    await myDB!.close().then((value) {
       emit(DisConnected(StateType.successState, "DisConnected"));
     }).catchError((error, stackTrace) {
       emit(DisConnected(StateType.errorState, error.toString()));
@@ -33,8 +34,8 @@ class AppCubit extends Cubit<AppStates> {
     });
   }
 
-  Future<void> insertDriver(Driver d) async {
-    await conn!.query('insert into driver (driver_name,driver_phone) values ( ?, ?);',
+  Future<void> insert(Driver d) async {
+    await myDB!.query('insert into driver (driver_name,driver_phone) values ( ?, ?);',
         [d.driverName, d.driverPhone]).then((value) {
       d.driverId = value.insertId!;
       MyData.driversList[d.driverId!] = d;
@@ -48,7 +49,7 @@ class AppCubit extends Cubit<AppStates> {
 
   Future<void> getDrivers() async {
     emit(SelectingData(StateType.successState, "Selecting Data,Please wait"));
-    await conn!.query('select * from driver').then((value) {
+    await myDB!.query('select * from driver').then((value) {
       MyData.driversList.clear();
       for (var row in value) {
         Driver d = Driver.fromDB(row);
@@ -61,8 +62,8 @@ class AppCubit extends Cubit<AppStates> {
     });
   }
 
-  Future<void> deleteDriver(Driver d) async {
-    await conn!.query('delete from driver where driver_id=?;', [d.driverId]).then((value) {
+  Future<void> delete(Driver d) async {
+    await myDB!.query('delete from driver where driver_id=?;', [d.driverId]).then((value) {
       MyData.driversList.remove(d.driverId);
       emit(DeletedData(StateType.successState, "Deleted Driver Data "));
     }).catchError((error, stackTrace) {
@@ -71,8 +72,8 @@ class AppCubit extends Cubit<AppStates> {
     });
   }
 
-  Future<void> updateDriver(Driver newDriver) async {
-    await conn!.query('update driver set driver_name = ?,driver_phone=? where driver_id=?;',
+  Future<void> update(Driver newDriver) async {
+    await myDB!.query('update driver set driver_name = ?,driver_phone=? where driver_id=?;',
         [newDriver.driverName, newDriver.driverPhone, newDriver.driverId]).then((value) {
       MyData.driversList[newDriver.driverId!] = newDriver;
       emit(UpdatedData(StateType.successState, "Updated Driver Data"));

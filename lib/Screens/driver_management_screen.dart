@@ -71,7 +71,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                 ], actions: [
                   IconButton(
                       onPressed: () {
-                        myDB.deleteDriver(driver);
+                        myDB.delete(driver);
                       },
                       color: MyColors.blue,
                       icon: const Icon(Icons.delete_forever)),
@@ -143,10 +143,10 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                             driverName: _nameController.text,
                             driverPhone: _phoneNumberController.text);
                         if (oldDriver == null) {
-                          myDB.insertDriver(newDriver);
+                          myDB.insert(newDriver);
                         } else {
                           newDriver.driverId = oldDriver.driverId;
-                          myDB.updateDriver(newDriver);
+                          myDB.update(newDriver);
                         }
                         Navigator.pop(context);
                       }

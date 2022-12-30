@@ -20,12 +20,16 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Bus Reservation Manager',
         home: BlocConsumer<AppCubit, AppStates>(
-          listener: (context, state) {},
-          builder: (context, state) {
-            if (state is InitialState ||
-                (state is Connected && state.type == StateType.errorState)) {
+          listener: (context, state) {
+            if (state.type == StateType.errorState) {
               AppCubit.get(context).connect();
             }
+          },
+          builder: (context, state) {
+            if (state is InitialState) {
+              AppCubit.get(context).connect();
+            }
+
             if (state is Connecting) {
               return const WaitScreen();
             }
