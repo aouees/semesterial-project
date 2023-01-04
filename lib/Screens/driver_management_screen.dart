@@ -15,7 +15,7 @@ import '../MyCubit/app_cubit.dart';
 import '../MyCubit/app_states.dart';
 
 class DriverManagementScreen extends StatefulWidget {
-  DriverManagementScreen({Key? key}) : super(key: key);
+  const DriverManagementScreen({Key? key}) : super(key: key);
 
   @override
   State<DriverManagementScreen> createState() => _DriverManagementScreenState();
@@ -50,6 +50,9 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
         if (state is SelectingData) {
           return const WaitScreen();
         }
+        if (state is InitialState) {
+          myDB.getDrivers();
+        }
         List<int> myKeys = MyData.driversList.keys.toList();
         return myScaffold(
             context: context,
@@ -71,7 +74,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                 ], actions: [
                   IconButton(
                       onPressed: () {
-                        myDB.delete(driver);
+                        myDB.deleteDriver(driver);
                       },
                       color: MyColors.blue,
                       icon: const Icon(Icons.delete_forever)),
@@ -143,10 +146,10 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                             driverName: _nameController.text,
                             driverPhone: _phoneNumberController.text);
                         if (oldDriver == null) {
-                          myDB.insert(newDriver);
+                          myDB.insertDriver(newDriver);
                         } else {
                           newDriver.driverId = oldDriver.driverId;
-                          myDB.update(newDriver);
+                          myDB.updateDriver(newDriver);
                         }
                         Navigator.pop(context);
                       }

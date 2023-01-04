@@ -1,7 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:mysql1/mysql1.dart';
-import '../Components/snack_bar.dart';
-import '../MyCubit/app_cubit.dart';
 
 class Driver {
   int? driverId;

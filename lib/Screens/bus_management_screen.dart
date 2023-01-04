@@ -10,6 +10,9 @@ import '../Components/dialog.dart';
 import '../Components/forms_items.dart';
 import '../Components/snack_bar.dart';
 import '../Constants/colors.dart';
+import '../Models/bus.dart';
+import '../MyCubit/myData.dart';
+import 'wait_screen.dart';
 
 class BusManagementScreen extends StatefulWidget {
   const BusManagementScreen({Key? key}) : super(key: key);
@@ -24,8 +27,13 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
   final _numberController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    AppCubit.get(context).getBus();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    AppCubit myDB = AppCubit.get(context);
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context, state) {
         if (state.type == StateType.successState) {
@@ -35,6 +43,14 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
         }
       },
       builder: (context, state) {
+        AppCubit myDB = AppCubit.get(context);
+        if (state is SelectedData && state.type == StateType.errorState) {
+          myDB.getBus();
+        }
+        if (state is SelectingData) {
+          return const WaitScreen();
+        }
+        List<int> myKeys = MyData.busList.keys.toList();
         return myScaffold(
           context: context,
           header: myAppBar(
@@ -45,27 +61,39 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
                     Navigator.pop(context);
                   },
                   icon: const Icon(Icons.arrow_forward_ios))),
-          body: SingleChildScrollView(
-            child: Column(
-                children: List.generate(
-              10,
-              (index) => myCard(values: [
-                myValues('النوع', 'كيا'),
-                myValues('رقم اللوحة', '456482'),
-                myValues('عدد المقاعد', '25'),
+          body: ListView.builder(
+            itemCount: MyData.busList.length,
+            itemBuilder: (context, index) {
+              Bus bus = MyData.busList[myKeys[index]]!;
+              return myCard(values: [
+                myValues('النوع', bus.busType),
+                myValues('رقم اللوحة', '${bus.busNumber}'),
+                myValues('عدد المقاعد', '${bus.busSeats}'),
               ], actions: [
                 IconButton(
-                    onPressed: () {}, color: MyColors.blue, icon: const Icon(Icons.delete_forever)),
-                IconButton(onPressed: () {}, color: MyColors.blue, icon: const Icon(Icons.edit)),
-              ]),
-            )),
+                    onPressed: () {
+                      myDB.deleteBus(bus);
+                    },
+                    color: MyColors.blue,
+                    icon: const Icon(Icons.delete_forever)),
+                IconButton(
+                    onPressed: () {
+                      _typeController.text = bus.busType;
+                      _numberSeatsController.text = '${bus.busSeats}';
+                      _numberController.text = '${bus.busNumber}';
+                      showBusDialog(context: context, oldBus: bus);
+                    },
+                    color: MyColors.blue,
+                    icon: const Icon(Icons.edit)),
+              ]);
+            },
           ),
           footer: myGradiantButton(
             context: context,
             title: 'اضافة باص جديد',
             icon: Icons.add,
             onPressed: () {
-              showBusDialog(context);
+              showBusDialog(context: context);
             },
           ),
         );
@@ -73,22 +101,22 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
     );
   }
 
-  void showBusDialog(BuildContext context) {
+  void showBusDialog({required BuildContext context, Bus? oldBus}) {
+    AppCubit myDB = AppCubit.get(context);
+    var formKey = GlobalKey<FormState>();
     myDialog(
         context: context,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Center(
-              child: Text(
-                'إضافة سائق جديد',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Form(
-                child: Column(
+        body: Form(
+            key: formKey,
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const Center(
+                  child: Text(
+                    'إضافة سائق جديد',
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                ),
                 defaultTextFormField(
                   controller: _typeController,
                   myHintText: 'نوع الباص',
@@ -124,13 +152,23 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
                 ),
                 myNormalButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      if (formKey.currentState!.validate()) {
+                        Bus newBus = Bus(
+                            busNumber: int.parse(_numberController.text),
+                            busSeats: int.parse(_numberSeatsController.text),
+                            busType: _typeController.text);
+                        if (oldBus == null) {
+                          myDB.insertBus(newBus);
+                        } else {
+                          newBus.busId = oldBus.busId;
+                          myDB.updateBus(newBus);
+                        }
+                        Navigator.pop(context);
+                      }
                     },
                     title: 'احفظ',
                     icon: Icons.save_outlined)
               ],
-            ))
-          ],
-        ));
+            )));
   }
 }
