@@ -3,6 +3,7 @@ import 'package:mysql1/mysql1.dart';
 import 'package:semesterial_project_admin/MyCubit/myData.dart';
 import '../Models/bus.dart';
 import '../Models/driver.dart';
+import '../Models/user.dart';
 import '../MyCubit/app_states.dart';
 import '../Constants/connectionDB.dart';
 
@@ -21,7 +22,7 @@ class AppCubit extends Cubit<AppStates> {
       emit(Connected(StateType.successState, "Connected"));
     }).catchError((error, stackTrace) {
       emit(Connected(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis connect :($error) \n $stackTrace");
     });
   }
 
@@ -31,7 +32,7 @@ class AppCubit extends Cubit<AppStates> {
       emit(DisConnected(StateType.successState, "DisConnected"));
     }).catchError((error, stackTrace) {
       emit(DisConnected(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis disConnect :($error) \n $stackTrace");
     });
   }
 
@@ -44,7 +45,7 @@ class AppCubit extends Cubit<AppStates> {
     }).catchError((error, stackTrace) {
       MyData.driversList.remove(d.driverId);
       emit(InsertedData(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis insertDriver :($error) \n $stackTrace");
     });
   }
 
@@ -59,7 +60,7 @@ class AppCubit extends Cubit<AppStates> {
       emit(SelectedData(StateType.successState, "Selected Driver Data"));
     }).catchError((error, stackTrace) {
       emit(SelectedData(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis getDrivers :($error) \n $stackTrace");
     });
   }
 
@@ -69,7 +70,7 @@ class AppCubit extends Cubit<AppStates> {
       emit(DeletedData(StateType.successState, "Deleted Driver Data "));
     }).catchError((error, stackTrace) {
       emit(DeletedData(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis deleteDriver :($error) \n $stackTrace");
     });
   }
 
@@ -80,7 +81,7 @@ class AppCubit extends Cubit<AppStates> {
       emit(UpdatedData(StateType.successState, "Updated Driver Data"));
     }).catchError((error, stackTrace) {
       emit(UpdatedData(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis updateDriver :($error) \n $stackTrace");
     });
   }
 
@@ -95,7 +96,7 @@ class AppCubit extends Cubit<AppStates> {
         MyData.busList.remove(b.busId);
       }
       emit(InsertedData(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis insertBus :($error) \n $stackTrace");
     });
   }
 
@@ -110,7 +111,7 @@ class AppCubit extends Cubit<AppStates> {
       emit(SelectedData(StateType.successState, "Selected Bus Data"));
     }).catchError((error, stackTrace) {
       emit(SelectedData(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis getBus :($error) \n $stackTrace");
     });
   }
 
@@ -120,7 +121,7 @@ class AppCubit extends Cubit<AppStates> {
       emit(DeletedData(StateType.successState, "Deleted Bus Data "));
     }).catchError((error, stackTrace) {
       emit(DeletedData(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis deleteBus :($error) \n $stackTrace");
     });
   }
 
@@ -131,7 +132,32 @@ class AppCubit extends Cubit<AppStates> {
       emit(UpdatedData(StateType.successState, "Updated Bus Data"));
     }).catchError((error, stackTrace) {
       emit(UpdatedData(StateType.errorState, error.toString()));
-      print("Owis : $stackTrace");
+      print("Owis updateBus :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> getUser() async {
+    emit(SelectingData(StateType.successState, "Selecting Users Data,Please wait"));
+    await myDB!.query('select user_id,user_name,user_phone,user_address from user').then((value) {
+      MyData.userList.clear();
+      for (var row in value) {
+        User u = User.fromDB(row);
+        MyData.userList[u.userId] = u;
+      }
+      emit(SelectedData(StateType.successState, "Selected Users Data"));
+    }).catchError((error, stackTrace) {
+      emit(SelectedData(StateType.errorState, error.toString()));
+      print("Owis getUser :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> deleteUser(User u) async {
+    await myDB!.query('delete from user where user_id=?;', [u.userId]).then((value) {
+      MyData.userList.remove(u.userId);
+      emit(DeletedData(StateType.successState, "Deleted user Data "));
+    }).catchError((error, stackTrace) {
+      emit(DeletedData(StateType.errorState, error.toString()));
+      print("Owis deleteUser :($error) \n $stackTrace");
     });
   }
 }
