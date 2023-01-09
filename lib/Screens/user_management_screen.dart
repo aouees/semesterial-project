@@ -21,12 +21,14 @@ class UserManagementScreen extends StatefulWidget {
 class _UserManagementScreenState extends State<UserManagementScreen> {
   @override
   void initState() {
-    super.initState();
     AppCubit.get(context).getUser();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    AppCubit myDB = AppCubit.get(context);
+
     return BlocConsumer<AppCubit, AppStates>(
       listener: (context, state) {
         if (state.type == StateType.successState) {
@@ -34,12 +36,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         } else {
           mySnackBar(state.toString(), context, Colors.red, Colors.black);
         }
-      },
-      builder: (context, state) {
-        AppCubit myDB = AppCubit.get(context);
         if (state is SelectedData && state.type == StateType.errorState) {
           myDB.getUser();
         }
+      },
+      builder: (context, state) {
         if (state is SelectingData) {
           return const WaitScreen();
         }
@@ -76,7 +77,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     onClick: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const UserTripsScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => UserTripsScreen(
+                                  user: user,
+                                )),
                       );
                     });
               },

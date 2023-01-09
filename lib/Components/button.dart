@@ -71,3 +71,62 @@ myNormalButton(
     ),
   );
 }
+
+Widget clickableGridTile(String title, String pathIcon, void Function()? onPressed) {
+  List<Widget> widgets = [];
+  if (onPressed == null) {
+    widgets.add(Container(
+        color: Colors.grey.withOpacity(0.5),
+        child: const Center(
+            child: Text(
+          'Coming soon',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+        ))));
+  }
+  return Card(
+    elevation: 10,
+    shape: RoundedRectangleBorder(
+        side: const BorderSide(color: MyColors.blue, width: 4),
+        borderRadius: BorderRadius.circular(30)),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(30),
+      splashColor: MyColors.blue,
+      onTap: onPressed,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 3,
+                child: CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  radius: 60,
+                  child: Image.asset(pathIcon),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          onPressed == null
+              ? Container(
+                  color: MyColors.blue.withOpacity(0.4),
+                  child: const Center(
+                      child: Text(
+                    'Coming soon',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                  )))
+              : Container()
+        ],
+      ),
+    ),
+  );
+}

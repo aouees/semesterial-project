@@ -113,7 +113,7 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
               children: [
                 const Center(
                   child: Text(
-                    'إضافة سائق جديد',
+                    'إضافة باص جديد',
                     style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                   ),
                 ),

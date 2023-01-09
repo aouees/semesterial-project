@@ -1,8 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mysql1/mysql1.dart';
+import 'package:semesterial_project_admin/Models/trip.dart';
 import 'package:semesterial_project_admin/MyCubit/myData.dart';
 import '../Models/bus.dart';
 import '../Models/driver.dart';
+import '../Models/manager.dart';
 import '../Models/user.dart';
 import '../MyCubit/app_states.dart';
 import '../Constants/connectionDB.dart';
@@ -158,6 +160,60 @@ class AppCubit extends Cubit<AppStates> {
     }).catchError((error, stackTrace) {
       emit(DeletedData(StateType.errorState, error.toString()));
       print("Owis deleteUser :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> getUserTrips(User u) async {
+    await myDB!.query('''select * from trip where trip_id in (
+        select reservatin_trip_id from reservation
+        where resrervation_user_id = ? );''', [u.userId]).then((value) {
+      MyData.tripList.clear();
+      MyData.totalAmount = 0;
+      for (var row in value) {
+        Trip t = Trip.fromDB(row);
+        MyData.tripList[t.tripId!] = t;
+        MyData.totalAmount += t.price;
+      }
+      emit(SelectedData(StateType.successState, "Selected ${u.userName} trip Data"));
+    }).catchError((error, stackTrace) {
+      emit(SelectedData(StateType.errorState, error.toString()));
+      print("Owis getUserTrips :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> deleteUserRes(User u, Trip t) async {
+    await myDB!.query(
+        'delete from reservation where reservatin_trip_id=? and resrervation_user_id =?;',
+        [t.tripId, u.userId]).then((value) {
+      MyData.tripList.remove(t.tripId);
+      MyData.totalAmount -= t.price;
+      emit(DeletedData(StateType.successState, "Deleted ${u.userName} trip Data "));
+    }).catchError((error, stackTrace) {
+      emit(DeletedData(StateType.errorState, error.toString()));
+      print("Owis deleteUserReservation :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> getManager() async {
+    emit(SelectingData(StateType.successState, "Selecting manager Data,Please wait"));
+    await myDB!.query('select * from manager').then((value) {
+      MyData.manager = Manager.fromDB(value.first);
+      emit(SelectedData(StateType.successState, "Selected manager Data"));
+    }).catchError((error, stackTrace) {
+      emit(SelectedData(StateType.errorState, error.toString()));
+      print("Owis getManager :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> updateManager(Manager manager) async {
+    emit(SelectingData(StateType.successState, "update manager Data,Please wait"));
+    await myDB!.query('update manager set manager_name=? ,manager_phone=? where manager_id =?',
+        [manager.name, manager.phone, manager.id]).then((value) {
+      MyData.manager = manager;
+      emit(UpdatedData(StateType.successState, "Updated manager Data"));
+    }).catchError((error, stackTrace) {
+      emit(UpdatedData(StateType.errorState, error.toString()));
+      print("Owis getManager :($error) \n $stackTrace");
     });
   }
 }
