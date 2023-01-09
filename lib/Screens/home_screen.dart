@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:semesterial_project_admin/Models/manager.dart';
-import 'package:semesterial_project_admin/MyCubit/myData.dart';
+import '../Models/manager.dart';
+import '../MyCubit/myData.dart';
 import '../MyCubit/app_cubit.dart';
 import '../Components/button.dart';
 import '../Components/dialog.dart';
