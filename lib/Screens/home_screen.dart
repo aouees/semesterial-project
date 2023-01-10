@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../Backend/DB/db_states.dart';
+import '../Components/loading.dart';
+import '../Components/snack_bar.dart';
 import '../Models/manager.dart';
-import '../MyCubit/myData.dart';
-import '../MyCubit/app_cubit.dart';
+import '../Backend/DB/myData.dart';
+import '../Backend/DB/database.dart';
 import '../Components/button.dart';
 import '../Components/dialog.dart';
 import '../Components/forms_items.dart';
@@ -14,120 +18,88 @@ import 'bus_management_screen.dart';
 import 'reservation_management_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  HomeScreen({Key? key}) : super(key: key);
-
-
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return myScaffold(
       context: context,
       header: myAppBar(title: 'الشاشة الرئيسية', context: context),
-      body: SmartGridView(
-        tileWidth: 150,
-        tileHeight: 150,
-        padding: const EdgeInsets.all(8.0),
-        children: [
-          clickableGridTile('إدارة السائقين', 'assets/icons/driver.png', () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => DriverManagementScreen()),
-            );
-          }),
-          clickableGridTile('إدارة الرحلات', 'assets/icons/trip.png', () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const TripManagerScreen()),
-            );
-          }),
-          clickableGridTile('إدارة الزبائن', 'assets/icons/client.png', () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const UserManagementScreen()),
-            );
-          }),
-          clickableGridTile('إدارة الباصات', 'assets/icons/bus.png', () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const BusManagementScreen()),
-            );
-          }),
-          clickableGridTile('إدارة الحجوزات', 'assets/icons/processing.png', () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ReservationManagementScreen()),
-            );
-          }),
-          clickableGridTile('الملف الشخصي', 'assets/icons/profile.png', () {
-            showProfileDialog(context);
-          }),
-          clickableGridTile('الملاحظات', 'assets/icons/notes.png', null),
-        ],
-      ),
-    );
+      body: BlocConsumer<Database, DatabaseStates>(
+        listener: (context, state) {
+          if (state is ErrorConnectingDataState) {
+            mySnackBar(state.msg, context, Colors.red, Colors.black);
+            Database.get(context).connect();
+          } else if (state is ErrorUpdatingDataState ||
+              state is ErrorDeletingDataState ||
+              state is ErrorInsertingDataState) {
+            mySnackBar(state.msg, context, Colors.red, Colors.black);
+          } else if (state is! LoadingState) {
+            mySnackBar(state.msg, context, Colors.green, Colors.white);
+          }
+        },
+        builder: (context, state) {
+          if (state is InitialState) {
+            Database.get(context).connect();
+          }
+          if (state is LoadingState) {
+            return myLoading();
+          }
 
-    /*return BlocConsumer<AppCubit, AppStates>(
-      listener: ((context, state) {
-        if (state.type == StateType.successState) {
-          mySnackBar(state.toString(), context, Colors.green, Colors.white);
-        } else {
-          mySnackBar(state.toString(), context, Colors.red, Colors.black);
-        }
-      }),
-      builder: (context, state) {
-        return myScaffold(
-          context: context,
-          header: myAppBar(title: 'الشاشة الرئيسية', context: context),
-          body: SmartGridView(
+          return SmartGridView(
             tileWidth: 150,
             tileHeight: 150,
             padding: const EdgeInsets.all(8.0),
             children: [
-              _clickableGridTile('إدارة السائقين', 'assets/icons/driver.png', () {
+              clickableGridTile('إدارة السائقين', 'assets/icons/driver.png', () {
+                Database.get(context).getDrivers();
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => DriverManagementScreen()),
                 );
               }),
-              _clickableGridTile('إدارة الرحلات', 'assets/icons/trip.png', () {
+              clickableGridTile('إدارة الرحلات', 'assets/icons/trip.png', () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const TripManagerScreen()),
                 );
               }),
-              _clickableGridTile('إدارة الزبائن', 'assets/icons/client.png', () {
+              clickableGridTile('إدارة الزبائن', 'assets/icons/client.png', () {
+                Database.get(context).getUser();
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const UserManagementScreen()),
                 );
               }),
-              _clickableGridTile('إدارة الباصات', 'assets/icons/bus.png', () {
+              clickableGridTile('إدارة الباصات', 'assets/icons/bus.png', () {
+                Database.get(context).getBus();
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const BusManagementScreen()),
+                  MaterialPageRoute(builder: (context) => BusManagementScreen()),
                 );
               }),
-              _clickableGridTile('إدارة الحجوزات', 'assets/icons/processing.png', () {
+              clickableGridTile('إدارة الحجوزات', 'assets/icons/processing.png', () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const ReservationManagementScreen()),
                 );
               }),
-              _clickableGridTile('الملف الشخصي', 'assets/icons/profile.png', () {
+              clickableGridTile('الملف الشخصي', 'assets/icons/profile.png', () {
                 showProfileDialog(context);
               }),
-              _clickableGridTile('الملاحظات', 'assets/icons/notes.png', null),
+              clickableGridTile('الملاحظات', 'assets/icons/notes.png', null),
             ],
-          ),
-        );
-      },
-    );*/
+          );
+        },
+      ),
+    );
   }
 
   void showProfileDialog(BuildContext context) async {
     final nameController = TextEditingController();
     final phoneNumberController = TextEditingController();
-    AppCubit myDB = AppCubit.get(context);
+    Database myDB = Database.get(context);
     final formKey = GlobalKey<FormState>();
     await myDB.getManager();
     nameController.text = MyData.manager!.name;
@@ -179,6 +151,7 @@ class HomeScreen extends StatelessWidget {
                                 name: nameController.text,
                                 phone: phoneNumberController.text);
                             await myDB.updateManager(m);
+                            // ignore: use_build_context_synchronously
                             Navigator.pop(context);
                           }
                         },
@@ -188,5 +161,28 @@ class HomeScreen extends StatelessWidget {
                 ))
           ],
         ));
+
+    /*
+    * BlocConsumer<Database, DatabaseStates>(
+          listener: (context, state) {
+            if (state is ErrorSelectingDataState) {
+              mySnackBar(state.toString(), context, Colors.red, Colors.black);
+              myDB.getManager();
+            } else if (state is ErrorUpdatingDataState ||
+                state is ErrorDeletingDataState ||
+                state is ErrorInsertingDataState) {
+              mySnackBar(state.toString(), context, Colors.red, Colors.black);
+            } else {
+              mySnackBar(state.toString(), context, Colors.green, Colors.white);
+            }
+          },
+          builder: (context, state) {
+            if (state is SelectedData) {
+
+            }
+            return myLoading();
+          },
+        )
+    * */
   }
 }

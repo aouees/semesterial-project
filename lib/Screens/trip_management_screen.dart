@@ -3,10 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../Components/button.dart';
 import '../Components/dialog.dart';
 import '../Components/scaffold.dart';
-import '../Components/snack_bar.dart';
 import '../Constants/colors.dart';
-import '../MyCubit/app_cubit.dart';
-import '../MyCubit/app_states.dart';
+import '../Backend/DB/database.dart';
+import '../Backend/DB/db_states.dart';
 import '../Screens/add_trip_form_Screen.dart';
 
 import '../Components/card.dart';
@@ -21,29 +20,20 @@ class TripManagerScreen extends StatefulWidget {
 class _TripManagerScreenState extends State<TripManagerScreen> {
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AppCubit, AppStates>(
-      listener: (context, state) {
-        if (state.type == StateType.successState) {
-          mySnackBar(state.toString(), context, Colors.green, Colors.white);
-        } else {
-          mySnackBar(state.toString(), context, Colors.red, Colors.black);
-        }
-      },
+    return BlocConsumer<Database, DatabaseStates>(
+      listener: (context, state) {},
       builder: (context, state) {
         return DefaultTabController(
             length: 2,
             child: myScaffold(
                 context: context,
                 header: Container(
-                  decoration: BoxDecoration(
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black54,
-                          blurRadius: 15,
-                        ),
-                      ],
-                      borderRadius: BorderRadius.circular(50),
-                      color: Colors.white),
+                  decoration: BoxDecoration(boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black54,
+                      blurRadius: 15,
+                    ),
+                  ], borderRadius: BorderRadius.circular(50), color: Colors.white),
                   margin: const EdgeInsets.all(15),
                   height: MediaQuery.of(context).orientation ==
                           Orientation.landscape

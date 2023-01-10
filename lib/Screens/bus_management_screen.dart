@@ -1,67 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:semesterial_project_admin/MyCubit/app_cubit.dart';
-import 'package:semesterial_project_admin/MyCubit/app_states.dart';
+import '../Backend/DB/database.dart';
+import '../Backend/DB/db_states.dart';
+import '../Components/loading.dart';
 import '../Components/scaffold.dart';
-
 import '../Components/button.dart';
 import '../Components/card.dart';
 import '../Components/dialog.dart';
 import '../Components/forms_items.dart';
-import '../Components/snack_bar.dart';
 import '../Constants/colors.dart';
 import '../Models/bus.dart';
-import '../MyCubit/myData.dart';
-import 'wait_screen.dart';
+import '../Backend/DB/myData.dart';
 
-class BusManagementScreen extends StatefulWidget {
-  const BusManagementScreen({Key? key}) : super(key: key);
+class BusManagementScreen extends StatelessWidget {
+  BusManagementScreen({Key? key}) : super(key: key);
 
-  @override
-  State<BusManagementScreen> createState() => _BusManagementScreenState();
-}
-
-class _BusManagementScreenState extends State<BusManagementScreen> {
   final _typeController = TextEditingController();
+
   final _numberSeatsController = TextEditingController();
+
   final _numberController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    AppCubit.get(context).getBus();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AppCubit, AppStates>(
-      listener: (context, state) {
-        if (state.type == StateType.successState) {
-          mySnackBar(state.toString(), context, Colors.green, Colors.white);
-        } else {
-          mySnackBar(state.toString(), context, Colors.red, Colors.black);
-        }
-      },
-      builder: (context, state) {
-        AppCubit myDB = AppCubit.get(context);
-        if (state is SelectedData && state.type == StateType.errorState) {
-          myDB.getBus();
-        }
-        if (state is SelectingData) {
-          return const WaitScreen();
-        }
-        List<int> myKeys = MyData.busList.keys.toList();
-        return myScaffold(
+    Database myDB = Database.get(context);
+    return myScaffold(
+      context: context,
+      header: myAppBar(
+          title: 'ادارة الباصات',
           context: context,
-          header: myAppBar(
-              title: 'ادارة الباصات',
-              context: context,
-              rightButton: IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.arrow_forward_ios))),
-          body: ListView.builder(
+          rightButton: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.arrow_forward_ios))),
+      body: BlocConsumer<Database, DatabaseStates>(
+        listener: (context, state) {
+          if (state is ErrorSelectingDataState) {
+            //  mySnackBar(state.msg, context, Colors.red, Colors.black);
+            myDB.getBus();
+          } /* else if (state is ErrorUpdatingDataState ||
+              state is ErrorDeletingDataState ||
+              state is ErrorInsertingDataState) {
+            mySnackBar(state.msg, context, Colors.red, Colors.black);
+          } else {
+            mySnackBar(state.msg, context, Colors.green, Colors.white);
+          }*/
+        },
+        builder: (context, state) {
+          List<int> myKeys = MyData.busList.keys.toList();
+          if (state is LoadingState) {
+            return myLoading();
+          }
+          return ListView.builder(
             itemCount: MyData.busList.length,
             itemBuilder: (context, index) {
               Bus bus = MyData.busList[myKeys[index]]!;
@@ -87,22 +78,22 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
                     icon: const Icon(Icons.edit)),
               ]);
             },
-          ),
-          footer: myGradiantButton(
-            context: context,
-            title: 'اضافة باص جديد',
-            icon: Icons.add,
-            onPressed: () {
-              showBusDialog(context: context);
-            },
-          ),
-        );
-      },
+          );
+        },
+      ),
+      footer: myGradiantButton(
+        context: context,
+        title: 'اضافة باص جديد',
+        icon: Icons.add,
+        onPressed: () {
+          showBusDialog(context: context);
+        },
+      ),
     );
   }
 
   void showBusDialog({required BuildContext context, Bus? oldBus}) {
-    AppCubit myDB = AppCubit.get(context);
+    Database myDB = Database.get(context);
     var formKey = GlobalKey<FormState>();
     myDialog(
         context: context,

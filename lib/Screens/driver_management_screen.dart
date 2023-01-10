@@ -1,107 +1,99 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:semesterial_project_admin/MyCubit/myData.dart';
-import 'package:semesterial_project_admin/Screens/wait_screen.dart';
+import 'package:semesterial_project_admin/Components/loading.dart';
+import '../Backend/DB/myData.dart';
 import '../Components/button.dart';
 import '../Components/dialog.dart';
 import '../Components/scaffold.dart';
-import '../Components/snack_bar.dart';
 import '../Constants/colors.dart';
-
 import '../Components/card.dart';
 import '../Components/forms_items.dart';
 import '../Models/driver.dart';
-import '../MyCubit/app_cubit.dart';
-import '../MyCubit/app_states.dart';
+import '../Backend/DB/database.dart';
+import '../Backend/DB/db_states.dart';
 
-class DriverManagementScreen extends StatefulWidget {
-  const DriverManagementScreen({Key? key}) : super(key: key);
+class DriverManagementScreen extends StatelessWidget {
+  DriverManagementScreen({Key? key}) : super(key: key);
 
-  @override
-  State<DriverManagementScreen> createState() => _DriverManagementScreenState();
-}
-
-class _DriverManagementScreenState extends State<DriverManagementScreen> {
   final _nameController = TextEditingController();
 
   final _phoneNumberController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    AppCubit.get(context).getDrivers();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AppCubit, AppStates>(
-      listener: (context, state) {
-        if (state.type == StateType.successState) {
-          mySnackBar(state.toString(), context, Colors.green, Colors.white);
-        } else {
-          mySnackBar(state.toString(), context, Colors.red, Colors.black);
-        }
-      },
-      builder: (context, state) {
-        AppCubit myDB = AppCubit.get(context);
-        if (state is SelectedData && state.type == StateType.errorState) {
-          myDB.getDrivers();
-        }
-        if (state is SelectingData) {
-          return const WaitScreen();
-        }
-        if (state is InitialState) {
-          myDB.getDrivers();
-        }
-        List<int> myKeys = MyData.driversList.keys.toList();
-        return myScaffold(
+    Database myDB = Database.get(context);
+    return myScaffold(
+        context: context,
+        header: myAppBar(
+            title: 'إدارة السائقين',
             context: context,
-            header: myAppBar(
-                title: 'إدارة السائقين',
-                context: context,
-                rightButton: IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: const Icon(Icons.arrow_forward_ios))),
-            body: ListView.builder(
-              itemCount: MyData.driversList.length,
-              itemBuilder: (context, index) {
-                Driver driver = MyData.driversList[myKeys[index]]!;
-                return myCard(values: [
-                  myValues('الاسم', driver.driverName),
-                  myValues('رقم الهاتف', driver.driverPhone),
-                ], actions: [
-                  IconButton(
-                      onPressed: () {
-                        myDB.deleteDriver(driver);
-                      },
-                      color: MyColors.blue,
-                      icon: const Icon(Icons.delete_forever)),
-                  IconButton(
-                      onPressed: () {
-                        _nameController.text = driver.driverName;
-                        _phoneNumberController.text = driver.driverPhone;
-                        showDriverDialog(context: context, oldDriver: driver);
-                      },
-                      color: MyColors.blue,
-                      icon: const Icon(Icons.edit)),
-                ]);
-              },
-            ),
-            footer: myGradiantButton(
-                context: context,
+            rightButton: IconButton(
                 onPressed: () {
-                  showDriverDialog(context: context);
+                  Navigator.pop(context);
                 },
-                title: 'إضافة سائق جديد',
-                icon: Icons.add));
-      },
-    );
+                icon: const Icon(Icons.arrow_forward_ios))),
+        body: BlocConsumer<Database, DatabaseStates>(
+          listener: (context, state) {
+            if (state is ErrorSelectingDataState) {
+              //mySnackBar(state.msg, context, Colors.red, Colors.black);
+              myDB.getDrivers();
+            } /* else if (state is ErrorUpdatingDataState ||
+                state is ErrorDeletingDataState ||
+                state is ErrorInsertingDataState) {
+              mySnackBar(state.msg, context, Colors.red, Colors.black);
+            } else {
+              mySnackBar(state.msg, context, Colors.green, Colors.white);
+            }*/
+          },
+          builder: (context, state) {
+            List<int> myKeys = MyData.driversList.keys.toList();
+            if (state is LoadingState) {
+              return myLoading();
+            } else {
+              return ListView.builder(
+                itemCount: MyData.driversList.length,
+                itemBuilder: (context, index) {
+                  Driver driver = MyData.driversList[myKeys[index]]!;
+                  return myCard(values: [
+                    myValues('الاسم', driver.driverName),
+                    myValues('رقم الهاتف', driver.driverPhone),
+                  ], actions: [
+                    IconButton(
+                        onPressed: () {
+                          myDB.deleteDriver(driver);
+                        },
+                        color: MyColors.blue,
+                        icon: const Icon(Icons.delete_forever)),
+                    IconButton(
+                        onPressed: () {
+                          showDriverDialog(context: context, oldDriver: driver);
+                        },
+                        color: MyColors.blue,
+                        icon: const Icon(Icons.edit)),
+                  ]);
+                },
+              );
+            }
+          },
+        ),
+        footer: myGradiantButton(
+            context: context,
+            onPressed: () {
+              showDriverDialog(context: context);
+            },
+            title: 'إضافة سائق جديد',
+            icon: Icons.add));
   }
 
   void showDriverDialog({required BuildContext context, Driver? oldDriver}) {
-    AppCubit myDB = AppCubit.get(context);
+    if (oldDriver == null) {
+      _nameController.clear();
+      _phoneNumberController.clear();
+    } else {
+      _nameController.text = oldDriver.driverName;
+      _phoneNumberController.text = oldDriver.driverPhone;
+    }
+    Database myDB = Database.get(context);
     var formKey = GlobalKey<FormState>();
 
     myDialog(

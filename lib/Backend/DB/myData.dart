@@ -1,11 +1,11 @@
 import 'package:semesterial_project_admin/Models/manager.dart';
 
-import '../Models/trip.dart';
+import '../../Models/driver.dart';
+import '../../Models/trip.dart';
 
-import '../Models/user.dart';
+import '../../Models/user.dart';
 
-import '../Models/bus.dart';
-import '../Models/driver.dart';
+import '../../Models/bus.dart';
 
 class MyData {
   static Map<int, Driver> driversList = {};

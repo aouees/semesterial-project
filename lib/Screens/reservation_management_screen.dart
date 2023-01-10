@@ -7,34 +7,25 @@ import '../Components/card.dart';
 import '../Components/dialog.dart';
 import '../Components/forms_items.dart';
 import '../Components/scaffold.dart';
-import '../Components/snack_bar.dart';
 import '../Constants/colors.dart';
-import '../MyCubit/app_cubit.dart';
-import '../MyCubit/app_states.dart';
+import '../Backend/DB/database.dart';
+import '../Backend/DB/db_states.dart';
 
 class ReservationManagementScreen extends StatefulWidget {
   const ReservationManagementScreen({Key? key}) : super(key: key);
 
   @override
-  State<ReservationManagementScreen> createState() =>
-      _ReservationManagementScreenState();
+  State<ReservationManagementScreen> createState() => _ReservationManagementScreenState();
 }
 
-class _ReservationManagementScreenState
-    extends State<ReservationManagementScreen> {
+class _ReservationManagementScreenState extends State<ReservationManagementScreen> {
   var _timeController = DropdownEditingController<String>();
   var _dateController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AppCubit, AppStates>(
-      listener: (context, state) {
-        if (state.type == StateType.successState) {
-          mySnackBar(state.toString(), context, Colors.green, Colors.white);
-        } else {
-          mySnackBar(state.toString(), context, Colors.red, Colors.black);
-        }
-      },
+    return BlocConsumer<Database, DatabaseStates>(
+      listener: (context, state) {},
       builder: (context, state) {
         return myScaffold(
             context: context,
