@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<Database>(
-        create: (context) => Database(),
+        create: (context) => Database()..connect(),
         child: const MaterialApp(
           title: 'Bus Reservation Manager',
           home: HomeScreen(),

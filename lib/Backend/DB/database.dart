@@ -18,7 +18,6 @@ class Database extends Cubit<DatabaseStates> {
 
   Future<void> connect() async {
     emit(LoadingState());
-
     await MySqlConnection.connect(ConnectionDB.setting).then((value) {
       _myDB = value;
       emit(Connected());

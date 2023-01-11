@@ -32,16 +32,14 @@ class HomeScreen extends StatelessWidget {
             Database.get(context).connect();
           } else if (state is ErrorUpdatingDataState ||
               state is ErrorDeletingDataState ||
-              state is ErrorInsertingDataState) {
+              state is ErrorInsertingDataState ||
+              state is ErrorSelectingDataState) {
             mySnackBar(state.msg, context, Colors.red, Colors.black);
           } else if (state is! LoadingState) {
             mySnackBar(state.msg, context, Colors.green, Colors.white);
           }
         },
         builder: (context, state) {
-          if (state is InitialState) {
-            Database.get(context).connect();
-          }
           if (state is LoadingState) {
             return myLoading();
           }
