@@ -11,9 +11,20 @@ import '../Components/card.dart';
 import '../Backend/DB/database.dart';
 import '../Backend/DB/db_states.dart';
 
-class UserTripsScreen extends StatelessWidget {
+class UserTripsScreen extends StatefulWidget {
   const UserTripsScreen({Key? key, required this.user}) : super(key: key);
   final User user;
+
+  @override
+  State<UserTripsScreen> createState() => _UserTripsScreenState();
+}
+
+class _UserTripsScreenState extends State<UserTripsScreen> {
+  @override
+  void initState() {
+    Database.get(context).getUserTrips(widget.user);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +32,7 @@ class UserTripsScreen extends StatelessWidget {
     return myScaffold(
         context: context,
         header: myAppBar(
-            title: 'حجوزات ${user.userName}',
+            title: 'حجوزات ${widget.user.userName}',
             context: context,
             rightButton: IconButton(
                 onPressed: () {
@@ -32,7 +43,7 @@ class UserTripsScreen extends StatelessWidget {
           listener: (context, state) {
             if (state is ErrorSelectingDataState) {
               // mySnackBar(state.toString(), context, Colors.red, Colors.black);
-              myDB.getUserTrips(user);
+              myDB.getUserTrips(widget.user);
             } /*else if (state is ErrorUpdatingDataState ||
                 state is ErrorDeletingDataState ||
                 state is ErrorInsertingDataState) {
@@ -52,14 +63,14 @@ class UserTripsScreen extends StatelessWidget {
                   Trip trip = MyData.tripList[myKeys[index]]!;
                   return myCard(values: [
                     myValues('الرحلة', trip.tripName),
-                    myValues('التاريخ', trip.tripDate),
-                    myValues('الوقت', trip.tripTime),
+                    myValues('التاريخ', trip.tripDate.toString().substring(0, 10)),
+                    myValues('الوقت', trip.tripTime.substring(0, 8)),
                     myValues('نوع الرحلة', trip.tripType),
                     myValues('سعر الحجز', trip.price.toString()),
                   ], actions: [
                     IconButton(
                         onPressed: () {
-                          myDB.deleteUserRes(user, trip);
+                          myDB.deleteUserRes(widget.user, trip);
                         },
                         color: MyColors.blue,
                         icon: const Icon(
@@ -71,25 +82,29 @@ class UserTripsScreen extends StatelessWidget {
             }
           },
         ),
-        footer: Container(
-          decoration: const BoxDecoration(boxShadow: [
-            BoxShadow(
-              color: Colors.black54,
-              blurRadius: 15,
-            ),
-          ], color: Colors.white),
-          height: MediaQuery.of(context).orientation == Orientation.landscape
-              ? 0.09 * MediaQuery.of(context).size.height
-              : 0.07 * MediaQuery.of(context).size.height,
-          child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  myValues('عدد الرحلات', '${MyData.tripList.length}'),
-                  myValues('المبلغ الكلي', '${MyData.totalAmount}'),
-                ],
-              )),
+        footer: BlocBuilder<Database, DatabaseStates>(
+          builder: (context, state) {
+            return Container(
+              decoration: const BoxDecoration(boxShadow: [
+                BoxShadow(
+                  color: Colors.black54,
+                  blurRadius: 15,
+                ),
+              ], color: Colors.white),
+              height: MediaQuery.of(context).orientation == Orientation.landscape
+                  ? 0.09 * MediaQuery.of(context).size.height
+                  : 0.07 * MediaQuery.of(context).size.height,
+              child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      myValues('عدد الرحلات', '${MyData.tripList.length}'),
+                      myValues('المبلغ الكلي', '${MyData.totalAmount}'),
+                    ],
+                  )),
+            );
+          },
         ));
   }
 }

@@ -26,13 +26,8 @@ void myBigDropdown({
       ),
       enableMultipleSelection: false,
       selectedItems: (List<dynamic> selectedList) {
-        List<String> list = [];
-        for (var item in selectedList) {
-          if (item is SelectedListItem) {
-            list.add(item.name);
-          }
-          controller.text = list[0].toString();
-        }
+        SelectedListItem temp = (selectedList.first as SelectedListItem);
+        controller.text = '${temp.value!}  _  ${temp.name}';
       },
     ),
   ).showModal(context);
@@ -42,17 +37,17 @@ Widget defaultTextFormField({
   required TextEditingController controller,
   required String myHintText,
   required TextInputType typeOfKeyboard,
-  required String? Function(String?) validate,
-  IconData? suffixIcon,
-  bool isPassword = false,
-  IconData? prefix,
-  Function? onSubmit,
-  Function? onTap,
-  Function? prefixPressed,
-  TextAlign myTextAlign = TextAlign.start,
-  bool? idAddressSelected,
-  bool readonly = false,
-}) {
+    required String? Function(String?) validate,
+    IconData? suffixIcon,
+    bool isPassword = false,
+    IconData? prefix,
+    Function? onSubmit,
+    Function? onTap,
+    Function? prefixPressed,
+    TextAlign myTextAlign = TextAlign.start,
+    bool? idAddressSelected,
+    bool readonly = false,
+    bool enabled = true}) {
   return Padding(
     padding: const EdgeInsets.symmetric(
       vertical: 10.0,
@@ -64,6 +59,7 @@ Widget defaultTextFormField({
           onTap();
         }
       },
+      enabled: enabled,
       readOnly: readonly,
       controller: controller,
       textAlign: myTextAlign,

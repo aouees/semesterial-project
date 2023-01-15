@@ -12,14 +12,25 @@ import '../Constants/colors.dart';
 import '../Models/bus.dart';
 import '../Backend/DB/myData.dart';
 
-class BusManagementScreen extends StatelessWidget {
-  BusManagementScreen({Key? key}) : super(key: key);
+class BusManagementScreen extends StatefulWidget {
+  const BusManagementScreen({Key? key}) : super(key: key);
 
+  @override
+  State<BusManagementScreen> createState() => _BusManagementScreenState();
+}
+
+class _BusManagementScreenState extends State<BusManagementScreen> {
   final _typeController = TextEditingController();
 
   final _numberSeatsController = TextEditingController();
 
   final _numberController = TextEditingController();
+
+  @override
+  void initState() {
+    Database.get(context).getBus();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

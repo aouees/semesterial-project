@@ -10,8 +10,19 @@ import '../Backend/DB/db_states.dart';
 import '../Backend/DB/myData.dart';
 import '../Screens/user_trips_screen.dart';
 
-class UserManagementScreen extends StatelessWidget {
+class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({Key? key}) : super(key: key);
+
+  @override
+  State<UserManagementScreen> createState() => _UserManagementScreenState();
+}
+
+class _UserManagementScreenState extends State<UserManagementScreen> {
+  @override
+  void initState() {
+    Database.get(context).getUser();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

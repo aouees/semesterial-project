@@ -50,10 +50,9 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             children: [
               clickableGridTile('إدارة السائقين', 'assets/icons/driver.png', () {
-                Database.get(context).getDrivers();
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => DriverManagementScreen()),
+                  MaterialPageRoute(builder: (context) => const DriverManagementScreen()),
                 );
               }),
               clickableGridTile('إدارة الرحلات', 'assets/icons/trip.png', () {
@@ -63,18 +62,15 @@ class HomeScreen extends StatelessWidget {
                 );
               }),
               clickableGridTile('إدارة الزبائن', 'assets/icons/client.png', () {
-                Database.get(context).getUser();
-
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const UserManagementScreen()),
                 );
               }),
               clickableGridTile('إدارة الباصات', 'assets/icons/bus.png', () {
-                Database.get(context).getBus();
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => BusManagementScreen()),
+                  MaterialPageRoute(builder: (context) => const BusManagementScreen()),
                 );
               }),
               clickableGridTile('إدارة الحجوزات', 'assets/icons/processing.png', () {

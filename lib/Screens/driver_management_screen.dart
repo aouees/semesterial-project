@@ -12,12 +12,23 @@ import '../Models/driver.dart';
 import '../Backend/DB/database.dart';
 import '../Backend/DB/db_states.dart';
 
-class DriverManagementScreen extends StatelessWidget {
-  DriverManagementScreen({Key? key}) : super(key: key);
+class DriverManagementScreen extends StatefulWidget {
+  const DriverManagementScreen({Key? key}) : super(key: key);
 
+  @override
+  State<DriverManagementScreen> createState() => _DriverManagementScreenState();
+}
+
+class _DriverManagementScreenState extends State<DriverManagementScreen> {
   final _nameController = TextEditingController();
 
   final _phoneNumberController = TextEditingController();
+
+  @override
+  void initState() {
+    Database.get(context).getDrivers();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

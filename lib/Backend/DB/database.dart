@@ -1,3 +1,4 @@
+import 'package:drop_down_list/model/selected_list_item.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mysql1/mysql1.dart';
 import '../../Models/trip.dart';
@@ -56,11 +57,13 @@ class Database extends Cubit<DatabaseStates> {
 
   Future<void> getDrivers() async {
     emit(LoadingState());
+    MyData.driversList.clear();
+    MyData.driverItems.clear();
     await _myDB!.query('select * from driver').then((value) {
-      MyData.driversList.clear();
       for (var row in value) {
         Driver d = Driver.fromDB(row);
         MyData.driversList[d.driverId!] = d;
+        MyData.driverItems.add(SelectedListItem(name: d.driverName, value: d.driverId.toString()));
       }
 
       emit(SelectedData("تم جلب بيانات السائقين "));
@@ -114,11 +117,14 @@ class Database extends Cubit<DatabaseStates> {
 
   Future<void> getBus() async {
     emit(LoadingState());
+    MyData.busList.clear();
+    MyData.busItems.clear();
     await _myDB!.query('select * from bus').then((value) {
-      MyData.busList.clear();
       for (var row in value) {
         Bus b = Bus.fromDB(row);
         MyData.busList[b.busId!] = b;
+        MyData.busItems.add(
+            SelectedListItem(name: '${b.busType} - ${b.busNumber}', value: b.busId.toString()));
       }
       emit(SelectedData("تم جلب بيانات الحافلات"));
     }).catchError((error, stackTrace) {
@@ -178,9 +184,16 @@ class Database extends Cubit<DatabaseStates> {
 
   Future<void> getUserTrips(User u) async {
     emit(LoadingState());
-    await _myDB!.query('''select * from trip where trip_id in (
-        select reservatin_trip_id from reservation
-        where resrervation_user_id = ? );''', [u.userId]).then((value) {
+    await _myDB!.query('''
+      select trip_id,trip_name,trip_name,
+		  trip_time,trip_date,trip_price,
+      concat( bus_type ,concat(' - ', bus_number)),
+      driver_name from trip,bus,driver where
+      driver_id=trip_driver_id 
+      and bus_id=trip_bus_id and trip_id in (
+      select reservatin_trip_id from reservation
+      where resrervation_user_id = ? );
+      ''', [u.userId]).then((value) {
       MyData.tripList.clear();
       MyData.totalAmount = 0;
       for (var row in value) {
@@ -230,6 +243,123 @@ class Database extends Cubit<DatabaseStates> {
       emit(ErrorUpdatingDataState('[updateManager] $error'));
 
       print("Owis getManager :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> getTrips() async {
+    emit(LoadingState());
+    MyData.tripList.clear();
+    MyData.tripListOnPast.clear();
+    await _myDB!.query('''
+      select trip_id,trip_name,trip_type,
+		  timee,trip_date,trip_price,
+      concat( bus_type ,concat(' - ', bus_number)),
+      driver_name from trip,bus,driver,trip_time where
+      driver_id=trip_driver_id 
+      and bus_id=trip_bus_id
+      and trip_time_id=trip_time;
+       ;''').then((value) {
+      for (var row in value) {
+        Trip trip = Trip.fromDB(row);
+        var d = DateTime.parse(trip.tripDate);
+        // past
+        if (DateTime.now().compareTo(d) == 1) {
+          MyData.tripListOnPast[trip.tripId!] = trip;
+        }
+        // future and at same date
+        else {
+          MyData.tripList[trip.tripId!] = trip;
+        }
+      }
+      emit(SelectedData('تم جلب بيانات الرحلات'));
+    }).catchError((error, stackTrace) {
+      emit(ErrorSelectingDataState('[getTrips] $error'));
+      print("Owis getTrips :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> insertTrip(Trip trip) async {
+    emit(LoadingState());
+
+    await _myDB!.query('''
+    INSERT INTO trip
+    (trip_name,
+    trip_type,
+    trip_time,
+    trip_date,
+    trip_price,
+    trip_driver_id,
+    trip_bus_id)
+    VALUES(?,?,?,?,?,?,?);
+    ''', [
+      trip.tripName,
+      trip.tripType.split('_')[0],
+      trip.tripTime.split('_')[0],
+      trip.tripDate,
+      trip.price,
+      int.parse(trip.driverDetails.split('_')[0]),
+      int.parse(trip.busDetails.split('_')[0])
+    ]).then((value) {
+      trip.tripTime = trip.tripTime.split('_')[1];
+      trip.tripType = trip.tripType.split('_')[1];
+      trip.busDetails = trip.busDetails.split('_')[1];
+      trip.driverDetails = trip.driverDetails.split('_')[1];
+
+      trip.tripId = value.insertId!;
+      MyData.tripList[trip.tripId!] = trip;
+      emit(InsertedData("تم اضافة بيانات الرحلة جديدة"));
+    }).catchError((error, stackTrace) {
+      if (MyData.tripList.containsKey(trip.tripId)) {
+        MyData.tripList.remove(trip.tripId);
+      }
+      emit(ErrorInsertingDataState('[insertTrip] $error'));
+      print("Owis insertTrip :($error) \n $stackTrace");
+    });
+  }
+
+  /*Future<void> updateTrip(Trip trip) async {
+    emit(LoadingState());
+    await _myDB!.query('''
+update trip set trip_name=? , trip_driver_id =?, trip_bus_id=? where trip_id =?''', [
+      trip.tripName,
+      int.parse(trip.driverDetails),
+      int.parse(trip.busDetails),
+      trip.tripId
+    ]).then((value) {
+      emit(UpdatedData("تم تحديث بيانات الرحلة"));
+    }).catchError((error, stackTrace) {
+      emit(ErrorUpdatingDataState('[updateManager] $error'));
+
+      print("Owis updateTrip :($error) \n $stackTrace");
+    });
+  }*/
+
+  Future<void> deleteTrip(Trip t) async {
+    emit(LoadingState());
+    await _myDB!.query('delete from trip where trip_id=? ;', [t.tripId]).then((value) {
+      if (MyData.tripList.containsKey(t.tripId)) {
+        MyData.tripList.remove(t.tripId);
+      } else {
+        MyData.tripListOnPast.remove(t.tripId);
+      }
+      emit(DeletedData("تم حذف بيانات الرحلة"));
+    }).catchError((error, stackTrace) {
+      emit(ErrorDeletingDataState('[deleteTrip] $error'));
+      print("Owis deleteTrip :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> getTime() async {
+    emit(LoadingState());
+    MyData.timeItems.clear();
+    await _myDB!.query('select * from trip_time').then((value) {
+      for (var row in value) {
+        MyData.timeItems.add(SelectedListItem(name: row[1], value: row[0].toString()));
+      }
+      emit(SelectedData("تم جلب الاوقات "));
+    }).catchError((error, stackTrace) {
+      emit(ErrorSelectingDataState('[getTime] $error'));
+      print("Owis getTime :($error) \n $stackTrace");
     });
   }
 }
