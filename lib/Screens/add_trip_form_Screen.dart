@@ -10,7 +10,8 @@ import '../Components/forms_items.dart';
 import '../Models/trip.dart';
 
 class AddTripForm extends StatefulWidget {
-  const AddTripForm({Key? key, trip}) : super(key: key);
+  const AddTripForm({Key? key, this.trip}) : super(key: key);
+  final Trip? trip;
 
   @override
   State<AddTripForm> createState() => _AddTripFormState();
@@ -24,7 +25,17 @@ class _AddTripFormState extends State<AddTripForm> {
   final _typeController = TextEditingController();
   final _driverController = TextEditingController();
   final _busController = TextEditingController();
-  var formKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    if (widget.trip != null) {
+      _nameController.text = widget.trip!.tripName;
+      _dateController.text = widget.trip!.tripDate;
+      _priceController.text = widget.trip!.price.toString();
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +43,8 @@ class _AddTripFormState extends State<AddTripForm> {
     return myScaffold(
         context: context,
         header: myAppBar(
-            title: 'اضافة رحلة جديدة',
+            title:
+                widget.trip == null ? 'اضافة رحلة جديدة' : 'تعديل الرحلة ${widget.trip!.tripName}',
             context: context,
             rightButton: IconButton(
                 onPressed: () {
@@ -206,12 +218,17 @@ class _AddTripFormState extends State<AddTripForm> {
                                   price: double.parse(_priceController.text),
                                   busDetails: _busController.text,
                                   driverDetails: _driverController.text);
-                              myDB.insertTrip(t);
+                              if (widget.trip == null) {
+                                myDB.insertTrip(t);
+                              } else {
+                                t.tripId = widget.trip?.tripId;
+                                myDB.updateTrip(t);
+                              }
 
                               Navigator.pop(context);
                             }
                           },
-                          title: 'اضافة',
+                          title: widget.trip == null ? 'اضافة' : 'تعديل',
                           icon: Icons.save_outlined)
                     ],
                   )),

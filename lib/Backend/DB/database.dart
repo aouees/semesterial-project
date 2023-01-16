@@ -317,22 +317,39 @@ class Database extends Cubit<DatabaseStates> {
     });
   }
 
-  /*Future<void> updateTrip(Trip trip) async {
+  Future<void> updateTrip(Trip trip) async {
     emit(LoadingState());
     await _myDB!.query('''
-update trip set trip_name=? , trip_driver_id =?, trip_bus_id=? where trip_id =?''', [
+    update trip set 
+    trip_name=?,
+    trip_type=?,
+    trip_time=?,
+    trip_date=?,
+    trip_price=?,
+    trip_driver_id=?,
+    trip_bus_id=?
+     where trip_id =?''', [
       trip.tripName,
-      int.parse(trip.driverDetails),
-      int.parse(trip.busDetails),
+      trip.tripType.split('_')[0],
+      trip.tripTime.split('_')[0],
+      trip.tripDate,
+      trip.price,
+      int.parse(trip.driverDetails.split('_')[0]),
+      int.parse(trip.busDetails.split('_')[0]),
       trip.tripId
     ]).then((value) {
+      trip.tripTime = trip.tripTime.split('_')[1];
+      trip.tripType = trip.tripType.split('_')[1];
+      trip.busDetails = trip.busDetails.split('_')[1];
+      trip.driverDetails = trip.driverDetails.split('_')[1];
+      MyData.tripList[trip.tripId!] = trip;
       emit(UpdatedData("تم تحديث بيانات الرحلة"));
     }).catchError((error, stackTrace) {
-      emit(ErrorUpdatingDataState('[updateManager] $error'));
+      emit(ErrorUpdatingDataState('[updateTrip] $error'));
 
       print("Owis updateTrip :($error) \n $stackTrace");
     });
-  }*/
+  }
 
   Future<void> deleteTrip(Trip t) async {
     emit(LoadingState());

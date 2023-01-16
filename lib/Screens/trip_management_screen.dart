@@ -101,6 +101,18 @@ class _TripManagerScreenState extends State<TripManagerScreen> {
                                   },
                                   color: MyColors.blue,
                                   icon: const Icon(Icons.delete_forever)),
+                              IconButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => AddTripForm(
+                                                trip: trip,
+                                              )),
+                                    );
+                                  },
+                                  color: MyColors.blue,
+                                  icon: const Icon(Icons.edit)),
                             ],
                             onClick: () {
                               showTripDialog(context, trip);
@@ -140,7 +152,7 @@ class _TripManagerScreenState extends State<TripManagerScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AddTripForm()),
+                    MaterialPageRoute(builder: (context) => const AddTripForm()),
                   );
                 },
                 title: 'اضافة رحلة جديدة',
