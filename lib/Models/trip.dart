@@ -2,17 +2,14 @@ import 'package:mysql1/mysql1.dart';
 
 class Trip {
   int? tripId;
-  String tripName, tripType;
-  String tripTime;
-  String tripDate;
-  String busDetails, driverDetails;
+  String tripName, tripType, busDetails, driverDetails;
+  DateTime tripDate;
   double price;
 
   Trip(
       {this.tripId,
       required this.tripName,
       required this.tripType,
-      required this.tripTime,
       required this.tripDate,
       required this.price,
       required this.busDetails,
@@ -23,10 +20,9 @@ class Trip {
         tripId: row[0],
         tripName: row[1],
         tripType: row[2],
-        tripTime: row[3],
-        tripDate: row[4],
-        price: row[5],
-        busDetails: row[6],
-        driverDetails: row[7]);
+        tripDate: (row[3] as DateTime).toLocal(),
+        price: row[4],
+        busDetails: row[5],
+        driverDetails: row[6]);
   }
 }

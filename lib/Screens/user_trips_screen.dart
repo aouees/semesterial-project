@@ -63,8 +63,8 @@ class _UserTripsScreenState extends State<UserTripsScreen> {
                   Trip trip = MyData.tripList[myKeys[index]]!;
                   return myCard(values: [
                     myValues('الرحلة', trip.tripName),
+                    myValues('الساعة', trip.tripDate.toString().substring(11)),
                     myValues('التاريخ', trip.tripDate.toString().substring(0, 10)),
-                    myValues('الوقت', trip.tripTime.substring(0, 8)),
                     myValues('نوع الرحلة', trip.tripType),
                     myValues('سعر الحجز', trip.price.toString()),
                   ], actions: [

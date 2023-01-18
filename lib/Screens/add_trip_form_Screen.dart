@@ -10,8 +10,8 @@ import '../Components/forms_items.dart';
 import '../Models/trip.dart';
 
 class AddTripForm extends StatefulWidget {
-  const AddTripForm({Key? key, this.trip}) : super(key: key);
-  final Trip? trip;
+  const AddTripForm({Key? key, this.tripId}) : super(key: key);
+  final int? tripId;
 
   @override
   State<AddTripForm> createState() => _AddTripFormState();
@@ -29,10 +29,18 @@ class _AddTripFormState extends State<AddTripForm> {
 
   @override
   void initState() {
-    if (widget.trip != null) {
-      _nameController.text = widget.trip!.tripName;
-      _dateController.text = widget.trip!.tripDate;
-      _priceController.text = widget.trip!.price.toString();
+    if (widget.tripId != null) {
+      Database.get(context).getTripById(widget.tripId!).then((value) {
+        setState(() {
+          _nameController.text = value.tripName;
+          _timeController.text = '  _ ${value.tripDate.toString().substring(11, 16)}';
+          _dateController.text = value.tripDate.toString().substring(0, 10);
+          _priceController.text = value.price.toString();
+          _typeController.text = '${value.tripType} _ ';
+          _driverController.text = value.driverDetails;
+          _busController.text = value.busDetails;
+        });
+      });
     }
     super.initState();
   }
@@ -43,8 +51,7 @@ class _AddTripFormState extends State<AddTripForm> {
     return myScaffold(
         context: context,
         header: myAppBar(
-            title:
-                widget.trip == null ? 'اضافة رحلة جديدة' : 'تعديل الرحلة ${widget.trip!.tripName}',
+            title: widget.tripId == null ? 'اضافة رحلة جديدة' : 'تعديل الرحلة ',
             context: context,
             rightButton: IconButton(
                 onPressed: () {
@@ -129,7 +136,7 @@ class _AddTripFormState extends State<AddTripForm> {
                                     context: context,
                                     initialDate: DateTime.now(),
                                     firstDate: DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 7)))
+                                    lastDate: DateTime.now().add(const Duration(days: 6)))
                                 .then((value) {
                               if (value != null) {
                                 _dateController.text = value.toString().substring(0, 10);
@@ -210,25 +217,27 @@ class _AddTripFormState extends State<AddTripForm> {
                       myNormalButton(
                           onPressed: () {
                             if (formKey.currentState!.validate()) {
+                              var time = _timeController.text.split(' _ ')[1].split(':');
+                              Duration x =
+                                  Duration(hours: int.parse(time[0]), minutes: int.parse(time[1]));
                               Trip t = Trip(
                                   tripName: _nameController.text,
                                   tripType: _typeController.text,
-                                  tripTime: _timeController.text,
-                                  tripDate: _dateController.text,
+                                  tripDate: DateTime.parse(_dateController.text).add(x),
                                   price: double.parse(_priceController.text),
                                   busDetails: _busController.text,
                                   driverDetails: _driverController.text);
-                              if (widget.trip == null) {
+                              if (widget.tripId == null) {
                                 myDB.insertTrip(t);
                               } else {
-                                t.tripId = widget.trip?.tripId;
+                                t.tripId = widget.tripId;
                                 myDB.updateTrip(t);
                               }
 
                               Navigator.pop(context);
                             }
                           },
-                          title: widget.trip == null ? 'اضافة' : 'تعديل',
+                          title: widget.tripId == null ? 'اضافة' : 'تعديل',
                           icon: Icons.save_outlined)
                     ],
                   )),

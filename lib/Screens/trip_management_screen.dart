@@ -90,8 +90,8 @@ class _TripManagerScreenState extends State<TripManagerScreen> {
                         return myCard(
                             values: [
                               myValues('اسم الرحلة', trip.tripName),
-                              myValues('الساعة', trip.tripTime),
-                              myValues('التاريخ', trip.tripDate),
+                              myValues('الساعة', trip.tripDate.toString().substring(11, 16)),
+                              myValues('التاريخ', trip.tripDate.toString().substring(0, 10)),
                               myValues('نوع الرحلة', trip.tripType)
                             ],
                             actions: [
@@ -107,7 +107,7 @@ class _TripManagerScreenState extends State<TripManagerScreen> {
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) => AddTripForm(
-                                                trip: trip,
+                                            tripId: trip.tripId,
                                               )),
                                     );
                                   },
@@ -126,8 +126,8 @@ class _TripManagerScreenState extends State<TripManagerScreen> {
                         return myCard(
                             values: [
                               myValues('اسم الرحلة', trip.tripName),
-                              myValues('الساعة', trip.tripTime),
-                              myValues('التاريخ', trip.tripDate),
+                              myValues('الساعة', trip.tripDate.toString().substring(11, 16)),
+                              myValues('التاريخ', trip.tripDate.toString().substring(0, 10)),
                               myValues('نوع الرحلة', trip.tripType)
                             ],
                             actions: [
@@ -166,9 +166,10 @@ class _TripManagerScreenState extends State<TripManagerScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             myValues('اسم الرحلة', trip.tripName),
-            myValues('الساعة', trip.tripTime),
-            myValues('التاريخ', trip.tripDate),
+            myValues('الساعة', trip.tripDate.toString().substring(11, 16)),
+            myValues('التاريخ', trip.tripDate.toString().substring(0, 10)),
             myValues('نوع الرحلة', trip.tripType),
+            myValues('سعر الرحلة', trip.price.toString()),
             myValues('الباص', trip.busDetails),
             myValues('السائق', trip.driverDetails),
             myNormalButton(

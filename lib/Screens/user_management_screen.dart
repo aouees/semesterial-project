@@ -76,7 +76,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             icon: const Icon(Icons.delete_forever)),
                       ],
                       onClick: () {
-                        myDB.getUserTrips(user);
                         Navigator.push(
                           context,
                           MaterialPageRoute(

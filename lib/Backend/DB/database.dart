@@ -185,8 +185,7 @@ class Database extends Cubit<DatabaseStates> {
   Future<void> getUserTrips(User u) async {
     emit(LoadingState());
     await _myDB!.query('''
-      select trip_id,trip_name,trip_name,
-		  trip_time,trip_date,trip_price,
+      select trip_id,trip_name,trip_type,trip_date,trip_price,
       concat( bus_type ,concat(' - ', bus_number)),
       driver_name from trip,bus,driver where
       driver_id=trip_driver_id 
@@ -251,19 +250,18 @@ class Database extends Cubit<DatabaseStates> {
     MyData.tripList.clear();
     MyData.tripListOnPast.clear();
     await _myDB!.query('''
-      select trip_id,trip_name,trip_type,
-		  timee,trip_date,trip_price,
-      concat( bus_type ,concat(' - ', bus_number)),
-      driver_name from trip,bus,driver,trip_time where
+      select trip_id,trip_name,trip_type,trip_date,trip_price,
+      concat( bus_type ,concat('-', bus_number)),
+      driver_name from trip,bus,driver where
       driver_id=trip_driver_id 
-      and bus_id=trip_bus_id
-      and trip_time_id=trip_time;
-       ;''').then((value) {
+      and bus_id=trip_bus_id;
+       ''').then((value) {
       for (var row in value) {
         Trip trip = Trip.fromDB(row);
-        var d = DateTime.parse(trip.tripDate);
+        var d = trip.tripDate;
+        var now = DateTime.now();
         // past
-        if (DateTime.now().compareTo(d) == 1) {
+        if (now.compareTo(d) == 1) {
           MyData.tripListOnPast[trip.tripId!] = trip;
         }
         // future and at same date
@@ -278,33 +276,49 @@ class Database extends Cubit<DatabaseStates> {
     });
   }
 
+  Future<Trip> getTripById(int id) async {
+    emit(LoadingState());
+    Trip t = await _myDB!.query('''
+    select trip_id,trip_name,trip_type,
+		trip_date,trip_price,
+       concat(bus_id,concat('_' ,concat( bus_type ,concat(' - ', bus_number)))),
+       concat(driver_id,concat('_', driver_name)) from trip,bus,driver,trip_time where
+       driver_id=trip_driver_id 
+       and bus_id=trip_bus_id
+       and trip_id=?
+       ;
+    ''', [id]).then((value) {
+      emit(SelectedData("تم جلب بيانات الرحلة"));
+      return Trip.fromDB(value.first);
+    }).catchError((error, stackTrace) {
+      emit(ErrorSelectingDataState('[getTripById] $error'));
+      print("Owis getTripById :($error) \n $stackTrace");
+    });
+    return t;
+  }
+
   Future<void> insertTrip(Trip trip) async {
     emit(LoadingState());
-
     await _myDB!.query('''
     INSERT INTO trip
     (trip_name,
     trip_type,
-    trip_time,
     trip_date,
     trip_price,
     trip_driver_id,
     trip_bus_id)
-    VALUES(?,?,?,?,?,?,?);
+    VALUES(?,?,?,?,?,?);
     ''', [
       trip.tripName,
       trip.tripType.split('_')[0],
-      trip.tripTime.split('_')[0],
-      trip.tripDate,
+      trip.tripDate.toUtc(),
       trip.price,
       int.parse(trip.driverDetails.split('_')[0]),
       int.parse(trip.busDetails.split('_')[0])
     ]).then((value) {
-      trip.tripTime = trip.tripTime.split('_')[1];
-      trip.tripType = trip.tripType.split('_')[1];
+      trip.tripType = trip.tripType.split('_')[0];
       trip.busDetails = trip.busDetails.split('_')[1];
       trip.driverDetails = trip.driverDetails.split('_')[1];
-
       trip.tripId = value.insertId!;
       MyData.tripList[trip.tripId!] = trip;
       emit(InsertedData("تم اضافة بيانات الرحلة جديدة"));
@@ -323,7 +337,6 @@ class Database extends Cubit<DatabaseStates> {
     update trip set 
     trip_name=?,
     trip_type=?,
-    trip_time=?,
     trip_date=?,
     trip_price=?,
     trip_driver_id=?,
@@ -331,15 +344,13 @@ class Database extends Cubit<DatabaseStates> {
      where trip_id =?''', [
       trip.tripName,
       trip.tripType.split('_')[0],
-      trip.tripTime.split('_')[0],
-      trip.tripDate,
+      trip.tripDate.toUtc(),
       trip.price,
       int.parse(trip.driverDetails.split('_')[0]),
       int.parse(trip.busDetails.split('_')[0]),
       trip.tripId
     ]).then((value) {
-      trip.tripTime = trip.tripTime.split('_')[1];
-      trip.tripType = trip.tripType.split('_')[1];
+      trip.tripType = trip.tripType.split('_')[0];
       trip.busDetails = trip.busDetails.split('_')[1];
       trip.driverDetails = trip.driverDetails.split('_')[1];
       MyData.tripList[trip.tripId!] = trip;
