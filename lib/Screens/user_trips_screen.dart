@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../Components/error.dart';
 import '../Components/loading.dart';
 import '../Models/trip.dart';
 import '../Models/user.dart';
@@ -39,23 +40,17 @@ class _UserTripsScreenState extends State<UserTripsScreen> {
                   Navigator.pop(context);
                 },
                 icon: const Icon(Icons.arrow_forward_ios))),
-        body: BlocConsumer<Database, DatabaseStates>(
-          listener: (context, state) {
-            if (state is ErrorSelectingDataState) {
-              // mySnackBar(state.toString(), context, Colors.red, Colors.black);
-              myDB.getUserTrips(widget.user);
-            } /*else if (state is ErrorUpdatingDataState ||
-                state is ErrorDeletingDataState ||
-                state is ErrorInsertingDataState) {
-              mySnackBar(state.toString(), context, Colors.red, Colors.black);
-            } else {
-              mySnackBar(state.toString(), context, Colors.green, Colors.white);
-            }*/
-          },
+        body: BlocBuilder<Database, DatabaseStates>(
           builder: (context, state) {
             List<int> myKeys = MyData.tripList.keys.toList();
             if (state is LoadingState) {
               return myLoading();
+            } else if (state is ErrorSelectingDataState) {
+              return myError(
+                  msg: state.msg,
+                  onPressed: () {
+                    myDB.getUserTrips(widget.user);
+                  });
             } else {
               return ListView.builder(
                 itemCount: MyData.tripList.length,

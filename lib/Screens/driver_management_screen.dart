@@ -4,6 +4,7 @@ import 'package:semesterial_project_admin/Components/loading.dart';
 import '../Backend/DB/myData.dart';
 import '../Components/button.dart';
 import '../Components/dialog.dart';
+import '../Components/error.dart';
 import '../Components/scaffold.dart';
 import '../Constants/colors.dart';
 import '../Components/card.dart';
@@ -43,23 +44,17 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                   Navigator.pop(context);
                 },
                 icon: const Icon(Icons.arrow_forward_ios))),
-        body: BlocConsumer<Database, DatabaseStates>(
-          listener: (context, state) {
-            if (state is ErrorSelectingDataState) {
-              //mySnackBar(state.msg, context, Colors.red, Colors.black);
-              myDB.getDrivers();
-            } /* else if (state is ErrorUpdatingDataState ||
-                state is ErrorDeletingDataState ||
-                state is ErrorInsertingDataState) {
-              mySnackBar(state.msg, context, Colors.red, Colors.black);
-            } else {
-              mySnackBar(state.msg, context, Colors.green, Colors.white);
-            }*/
-          },
+        body: BlocBuilder<Database, DatabaseStates>(
           builder: (context, state) {
             List<int> myKeys = MyData.driversList.keys.toList();
             if (state is LoadingState) {
               return myLoading();
+            } else if (state is ErrorSelectingDataState) {
+              return myError(
+                  msg: state.msg,
+                  onPressed: () {
+                    myDB.getDrivers();
+                  });
             } else {
               return ListView.builder(
                 itemCount: MyData.driversList.length,

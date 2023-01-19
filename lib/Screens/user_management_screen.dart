@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../Components/card.dart';
+import '../Components/error.dart';
 import '../Components/loading.dart';
 import '../Components/scaffold.dart';
 import '../Constants/colors.dart';
@@ -39,23 +40,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 },
                 icon: const Icon(Icons.arrow_forward_ios)),
             leftButton: IconButton(onPressed: () {}, icon: const Icon(Icons.search))),
-        body: BlocConsumer<Database, DatabaseStates>(
-          listener: (context, state) {
-            if (state is ErrorSelectingDataState) {
-              // mySnackBar(state.toString(), context, Colors.red, Colors.black);
-              myDB.getUser();
-            } /* else if (state is ErrorUpdatingDataState ||
-            state is ErrorDeletingDataState ||
-            state is ErrorInsertingDataState) {
-          mySnackBar(state.toString(), context, Colors.red, Colors.black);
-        } else {
-          mySnackBar(state.toString(), context, Colors.green, Colors.white);
-        }*/
-          },
+        body: BlocBuilder<Database, DatabaseStates>(
           builder: (context, state) {
             List<int> myKeys = MyData.userList.keys.toList();
             if (state is LoadingState) {
               return myLoading();
+            } else if (state is ErrorSelectingDataState) {
+              return myError(
+                  msg: state.msg,
+                  onPressed: () {
+                    myDB.getUser();
+                  });
             } else {
               return ListView.builder(
                 itemCount: MyData.userList.length,
@@ -80,8 +75,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => UserTripsScreen(
-                                    user: user,
-                                  )),
+                                user: user,
+                              )),
                         );
                       });
                 },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:semesterial_project_admin/Components/error.dart';
 import '../Backend/DB/db_states.dart';
 import '../Components/loading.dart';
 import '../Components/snack_bar.dart';
@@ -27,10 +28,8 @@ class HomeScreen extends StatelessWidget {
       header: myAppBar(title: 'الشاشة الرئيسية', context: context),
       body: BlocConsumer<Database, DatabaseStates>(
         listener: (context, state) {
-          if (state is ErrorConnectingDataState) {
-            mySnackBar(state.msg, context, Colors.red, Colors.black);
-            Database.get(context).connect();
-          } else if (state is ErrorUpdatingDataState ||
+          if (state is ErrorConnectingDataState ||
+              state is ErrorUpdatingDataState ||
               state is ErrorDeletingDataState ||
               state is ErrorInsertingDataState ||
               state is ErrorSelectingDataState) {
@@ -42,6 +41,12 @@ class HomeScreen extends StatelessWidget {
         builder: (context, state) {
           if (state is LoadingState) {
             return myLoading();
+          } else if (state is ErrorConnectingDataState) {
+            return myError(
+                msg: state.msg,
+                onPressed: () {
+                  Database.get(context).connect();
+                });
           }
 
           return SmartGridView(

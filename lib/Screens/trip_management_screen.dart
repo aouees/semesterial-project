@@ -5,6 +5,7 @@ import 'package:semesterial_project_admin/Components/loading.dart';
 import 'package:semesterial_project_admin/Models/trip.dart';
 import '../Components/button.dart';
 import '../Components/dialog.dart';
+import '../Components/error.dart';
 import '../Components/scaffold.dart';
 import '../Constants/colors.dart';
 import '../Backend/DB/database.dart';
@@ -73,13 +74,19 @@ class _TripManagerScreenState extends State<TripManagerScreen> {
                 ],
               ),
             ),
-            body: BlocConsumer<Database, DatabaseStates>(
-              listener: (context, state) {},
+            body: BlocBuilder<Database, DatabaseStates>(
               builder: (context, state) {
                 List<int> myKeys = MyData.tripList.keys.toList();
                 List<int> myKeysOnPast = MyData.tripListOnPast.keys.toList();
                 if (state is LoadingState) {
                   return myLoading();
+                }
+                if (state is ErrorSelectingDataState) {
+                  return myError(
+                      msg: state.msg,
+                      onPressed: () {
+                        myDB.getTrips();
+                      });
                 }
                 return TabBarView(
                   children: [

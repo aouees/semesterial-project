@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:semesterial_project_admin/Components/error.dart';
 import '../Backend/DB/database.dart';
 import '../Backend/DB/db_states.dart';
 import '../Components/loading.dart';
@@ -45,23 +46,18 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
                 Navigator.pop(context);
               },
               icon: const Icon(Icons.arrow_forward_ios))),
-      body: BlocConsumer<Database, DatabaseStates>(
-        listener: (context, state) {
-          if (state is ErrorSelectingDataState) {
-            //  mySnackBar(state.msg, context, Colors.red, Colors.black);
-            myDB.getBus();
-          } /* else if (state is ErrorUpdatingDataState ||
-              state is ErrorDeletingDataState ||
-              state is ErrorInsertingDataState) {
-            mySnackBar(state.msg, context, Colors.red, Colors.black);
-          } else {
-            mySnackBar(state.msg, context, Colors.green, Colors.white);
-          }*/
-        },
+      body: BlocBuilder<Database, DatabaseStates>(
         builder: (context, state) {
           List<int> myKeys = MyData.busList.keys.toList();
           if (state is LoadingState) {
             return myLoading();
+          }
+          if (state is ErrorSelectingDataState) {
+            return myError(
+                msg: state.msg,
+                onPressed: () {
+                  myDB.getBus();
+                });
           }
           return ListView.builder(
             itemCount: MyData.busList.length,
