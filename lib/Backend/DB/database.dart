@@ -1,6 +1,7 @@
 import 'package:drop_down_list/model/selected_list_item.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mysql1/mysql1.dart';
+import 'package:semesterial_project_admin/Models/reservation.dart';
 import '../../Models/trip.dart';
 import '../DB/myData.dart';
 import '../../Models/bus.dart';
@@ -388,6 +389,30 @@ class Database extends Cubit<DatabaseStates> {
     }).catchError((error, stackTrace) {
       emit(ErrorSelectingDataState('[getTime] $error'));
       print("Owis getTime :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> getReservation(DateTime date, String type) async {
+    emit(LoadingState());
+    MyData.reservationList.clear();
+    print("$date _ $type");
+    await _myDB!.query('''
+        select temp_reservation_id, user_id, user_name ,user_address,temp_reservation_type
+    from user,temp_reservation
+    where temp_reservation_user_id=user_id 
+    and temp_reservation_trip_type=?
+    and temp_reservation_date=?
+    ;
+    ''', [type.trim(), date.toUtc()]).then((value) {
+      print(value);
+      for (var row in value) {
+        Reservation r = Reservation.fromDB(row);
+        MyData.reservationList[r.id] = r;
+      }
+      emit(SelectedData("تم جلب بيانات الحجوزات"));
+    }).catchError((error, stackTrace) {
+      emit(ErrorSelectingDataState('[getReservation] $error'));
+      print("Owis getReservation :($error) \n $stackTrace");
     });
   }
 }
