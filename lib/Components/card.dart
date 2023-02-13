@@ -5,6 +5,7 @@ import '../Constants/colors.dart';
 myCard(
     {List<IconButton>? actions,
     required List<Widget> values,
+    Color color = Colors.white,
     void Function()? onClick}) {
   var widgets = [
     Expanded(
@@ -26,6 +27,7 @@ myCard(
     child: InkWell(
       onTap: onClick,
       child: Card(
+        color: color,
         elevation: 10,
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 0),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

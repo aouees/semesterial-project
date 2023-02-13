@@ -21,4 +21,5 @@ class MyData {
   static double totalAmount = 0;
   static Manager? manager;
   static Map<int, Reservation> reservationList = {};
+  static List<SelectedListItem> tripItems = [];
 }

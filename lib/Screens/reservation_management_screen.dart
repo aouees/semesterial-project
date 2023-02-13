@@ -1,7 +1,9 @@
 import 'package:drop_down_list/model/selected_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:semesterial_project_admin/Models/reservation.dart';
+import '../Components/loading.dart';
+import '../Components/error.dart';
+import '../Models/reservation.dart';
 import '../Backend/DB/myData.dart';
 import '../Components/button.dart';
 import '../Components/card.dart';
@@ -20,13 +22,19 @@ class ReservationManagementScreen extends StatefulWidget {
 }
 
 class _ReservationManagementScreenState extends State<ReservationManagementScreen> {
-  final _timeController = TextEditingController();
-  final _typeController = TextEditingController();
-  final _dateController = TextEditingController();
+  late DateTime _dateTime;
+
+  late String _type;
+
+  @override
+  void dispose() {
+    MyData.tripItems.clear();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Database myDB = Database.get(context);
+    Database myDB = Database.get(context);
 
     return myScaffold(
         context: context,
@@ -40,79 +48,113 @@ class _ReservationManagementScreenState extends State<ReservationManagementScree
               icon: const Icon(Icons.arrow_forward_ios)),
         ),
         body: BlocBuilder<Database, DatabaseStates>(
+          buildWhen: (previous, current) {
+            return !(current is LoadingTripState || current is SelectTripState);
+          },
           builder: (context, state) {
+            if (state is LoadingState) {
+              return myLoading();
+            }
+            if (state is ErrorSelectingDataState) {
+              return myError(
+                  msg: state.msg,
+                  onPressed: () {
+                    myDB.getReservation(_dateTime.toUtc(), _type);
+                  });
+            }
             List<int> myKeys = MyData.reservationList.keys.toList();
-
             return ListView.builder(
               itemCount: MyData.reservationList.length,
               itemBuilder: (context, index) {
                 Reservation r = MyData.reservationList[myKeys[index]]!;
-                var tripController = TextEditingController(),
-                    timeArrivedController = TextEditingController();
-                return myCard(values: [
-                  myValues('الاسم', r.username),
-                  myValues('العنوان', r.address),
-                  defaultTextFormField(
-                      controller: tripController,
-                      myHintText: 'اختر الرحلة المناسبة',
-                      typeOfKeyboard: TextInputType.text,
-                      validate: (value) {
-                        if (value!.isEmpty) {
-                          return "يجب اختيار الرحلة ";
-                        }
-                        return null;
-                      },
-                      readonly: true,
-                      onTap: () {
-                        myBigDropdown(
-                            title: 'اختر الرحلة',
-                            controller: tripController,
-                            itemList: <SelectedListItem>[
-                              SelectedListItem(name: 'الرحلة الاولى', value: '0'),
-                              SelectedListItem(name: 'الرحلة الثانية', value: '1'),
-                              SelectedListItem(name: 'الرحلة الثالثة', value: '2'),
-                            ],
-                            context: context);
-                      }),
-                  defaultTextFormField(
-                      controller: timeArrivedController,
-                      myHintText: 'حدد وقت وصول الباص',
-                      typeOfKeyboard: TextInputType.text,
-                      validate: (value) {
-                        if (value!.isEmpty) {
-                          return "يجب تحديد وقت وصول الباصل ";
-                        }
-                        return null;
-                      },
-                      readonly: true,
-                      onTap: () {
-                        showTimePicker(
-                                builder: (context, child) {
-                                  return Theme(
-                                    data: Theme.of(context).copyWith(
-                                      colorScheme: const ColorScheme.light(
-                                        primary: MyColors.blue, // body text color
-                                      ),
-                                      textButtonTheme: TextButtonThemeData(
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: MyColors.blue, // button text color
+                return Form(
+                    key: r.formKey,
+                    child: myCard(color: r.type == 1 ? Colors.white60 : Colors.white, values: [
+                      myValues('الاسم', r.username),
+                      myValues('العنوان', r.address),
+                      defaultTextFormField(
+                          controller: r.tripController,
+                          myHintText: 'اختر الرحلة المناسبة',
+                          typeOfKeyboard: TextInputType.text,
+                          validate: (value) {
+                            if (value!.isEmpty) {
+                              return "يجب اختيار الرحلة ";
+                            }
+                            return null;
+                          },
+                          readonly: true,
+                          onTap: () async {
+                            await myDB.getTripsByDateType(_dateTime.toUtc(), _type);
+                            myBigDropdown(
+                              title: 'اختر الرحلة',
+                              controller: r.tripController,
+                              itemList: MyData.tripItems,
+                              context: context,
+                            );
+                          }),
+                      defaultTextFormField(
+                          controller: r.timeController,
+                          myHintText: 'حدد وقت وصول الباص',
+                          typeOfKeyboard: TextInputType.text,
+                          validate: (value) {
+                            if (value!.isEmpty) {
+                              return "يجب تحديد وقت وصول الباصل ";
+                            }
+                            return null;
+                          },
+                          readonly: true,
+                          onTap: () {
+                            showTimePicker(
+                                    builder: (context, child) {
+                                      return Theme(
+                                        data: Theme.of(context).copyWith(
+                                          colorScheme: const ColorScheme.light(
+                                            primary: MyColors.blue, // body text color
+                                          ),
+                                          textButtonTheme: TextButtonThemeData(
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: MyColors.blue, // button text color
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                    child: child ?? Container(),
-                                  );
-                                },
-                                context: context,
-                                initialTime: TimeOfDay.now())
-                            .then((value) {
-                          if (value != null) {
-                            var actTime = "${value.hour}:${value.minute}";
-                            timeArrivedController.text = actTime;
-                          }
-                        });
-                      }),
-                  myNormalButton(onPressed: () {}, title: 'احفظ', icon: Icons.save_outlined)
-                ]);
+                                        child: child ?? Container(),
+                                      );
+                                    },
+                                    context: context,
+                                    initialTime: TimeOfDay.fromDateTime(_dateTime))
+                                .then((value) {
+                              if (value != null) {
+                                var actTime = "${value.hour}:${value.minute}";
+                                r.timeController.text = actTime;
+                              }
+                            });
+                          }),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          myNormalButton(
+                              onPressed: () {
+                                if (r.formKey.currentState!.validate()) {
+                                  int tId = int.parse(r.tripController.text.split('_')[0].trim());
+                                  var time = r.timeController.text.split(':');
+                                  Duration d = Duration(
+                                      hours: int.parse(time[0]), minutes: int.parse(time[1]));
+                                  myDB.insertReservation(tId, r.userId, d, r.type, r.id,
+                                      _dateTime.add(const Duration(days: 7)).toUtc());
+                                }
+                              },
+                              title: 'احفظ',
+                              icon: Icons.save_outlined),
+                          myNormalButton(
+                              onPressed: () {
+                                myDB.insertCancelReservation(
+                                    r.type, r.id, _dateTime.add(Duration(days: 7)).toUtc());
+                              },
+                              title: 'حذف',
+                              icon: Icons.delete)
+                        ],
+                      )
+                    ]));
               },
             );
           },
@@ -128,7 +170,9 @@ class _ReservationManagementScreenState extends State<ReservationManagementScree
 
   void showFilterDialog(BuildContext context) {
     final formKey = GlobalKey<FormState>();
-
+    final timeController = TextEditingController();
+    final typeController = TextEditingController();
+    final dateController = TextEditingController();
     Database myDB = Database.get(context);
     myDialog(
       context: context,
@@ -144,7 +188,7 @@ class _ReservationManagementScreenState extends State<ReservationManagementScree
                 ),
               ),
               defaultTextFormField(
-                  controller: _dateController,
+                  controller: dateController,
                   myHintText: 'التاريخ',
                   typeOfKeyboard: TextInputType.text,
                   validate: (value) {
@@ -177,13 +221,12 @@ class _ReservationManagementScreenState extends State<ReservationManagementScree
                             lastDate: DateTime.now().add(const Duration(days: 6)))
                         .then((value) {
                       if (value != null) {
-                        _dateController.text = value.toString().substring(0, 10);
-                        setState(() {});
+                        dateController.text = value.toString().substring(0, 10);
                       }
                     });
                   }),
               defaultTextFormField(
-                  controller: _typeController,
+                  controller: typeController,
                   myHintText: 'نوع الرحلة',
                   typeOfKeyboard: TextInputType.text,
                   validate: (value) {
@@ -196,7 +239,7 @@ class _ReservationManagementScreenState extends State<ReservationManagementScree
                   onTap: () {
                     myBigDropdown(
                         title: 'اختر نوع الرحلة',
-                        controller: _typeController,
+                        controller: typeController,
                         itemList: <SelectedListItem>[
                           SelectedListItem(name: 'ذهاب الى الجامعة', value: 'ذهاب'),
                           SelectedListItem(name: 'العودة من الجامعة', value: 'اياب'),
@@ -205,7 +248,7 @@ class _ReservationManagementScreenState extends State<ReservationManagementScree
                   }),
               defaultTextFormField(
                 readonly: true,
-                controller: _timeController,
+                controller: timeController,
                 myHintText: 'الساعة',
                 typeOfKeyboard: TextInputType.text,
                 validate: (value) {
@@ -218,7 +261,7 @@ class _ReservationManagementScreenState extends State<ReservationManagementScree
                   await myDB.getTime();
                   myBigDropdown(
                       title: 'اختر وقت الرحلة',
-                      controller: _timeController,
+                      controller: timeController,
                       itemList: MyData.timeItems,
                       context: context);
                 },
@@ -226,11 +269,11 @@ class _ReservationManagementScreenState extends State<ReservationManagementScree
               myNormalButton(
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
-                      var time = _timeController.text.split(' _ ')[1].split(':');
+                      var time = timeController.text.split(' _ ')[1].split(':');
                       Duration x = Duration(hours: int.parse(time[0]), minutes: int.parse(time[1]));
-                      DateTime t = DateTime.parse(_dateController.text).add(x);
-                      print('${t.toUtc()}**$t ** ${_typeController.text.split('_')[0]}.');
-                      myDB.getReservation(t, _typeController.text.split('_')[0]);
+                      _dateTime = DateTime.parse(dateController.text).add(x);
+                      _type = typeController.text.split('_')[0].trim();
+                      myDB.getReservation(_dateTime.toUtc(), _type);
                       Navigator.pop(context);
                     }
                   },

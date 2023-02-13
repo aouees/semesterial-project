@@ -311,7 +311,7 @@ class Database extends Cubit<DatabaseStates> {
     VALUES(?,?,?,?,?,?);
     ''', [
       trip.tripName,
-      trip.tripType.split('_')[0],
+      trip.tripType.split('_')[0].trim(),
       trip.tripDate.toUtc(),
       trip.price,
       int.parse(trip.driverDetails.split('_')[0]),
@@ -395,24 +395,135 @@ class Database extends Cubit<DatabaseStates> {
   Future<void> getReservation(DateTime date, String type) async {
     emit(LoadingState());
     MyData.reservationList.clear();
-    print("$date _ $type");
     await _myDB!.query('''
         select temp_reservation_id, user_id, user_name ,user_address,temp_reservation_type
     from user,temp_reservation
     where temp_reservation_user_id=user_id 
     and temp_reservation_trip_type=?
     and temp_reservation_date=?
+    order by temp_reservation_type
     ;
-    ''', [type.trim(), date.toUtc()]).then((value) {
-      print(value);
+    ''', [type, date]).then((value) {
       for (var row in value) {
         Reservation r = Reservation.fromDB(row);
         MyData.reservationList[r.id] = r;
       }
-      emit(SelectedData("تم جلب بيانات الحجوزات"));
+      emit(SelectedData("${MyData.reservationList.length} تم جلب بيانات الحجوزات "));
     }).catchError((error, stackTrace) {
       emit(ErrorSelectingDataState('[getReservation] $error'));
       print("Owis getReservation :($error) \n $stackTrace");
     });
+  }
+
+  Future<void> getTripsByDateType(DateTime date, String type) async {
+    emit(LoadingTripState());
+    MyData.tripItems.clear();
+    await _myDB!.query('''
+    select trip_id,trip_name,
+    bus_seats - (select count(*) from reservation where trip_id=reservatin_trip_id) as cc
+    from trip,bus 
+    where trip_bus_id=bus_id
+    and  (select count(*) from reservation where trip_id=reservatin_trip_id) <bus_seats
+    and trip_date=?
+    and trip_type=?
+    ;
+    ''', [date, type]).then((value) {
+      for (var row in value) {
+        MyData.tripItems.add(SelectedListItem(
+            name: 'عدد المقاعد المتاحة في ${row[1]}:${row[2]}', value: row[0].toString()));
+      }
+      emit(SelectTripState());
+    }).catchError((error, stackTrace) {
+      emit(ErrorSelectingDataState('[getTripsByDateType] $error'));
+      print("Owis getTripsByDateType :($error) \n $stackTrace");
+    });
+  }
+
+  Future<void> insertReservation(int tripId, int userId, Duration duration, int type,
+      int reservationID, DateTime reservationDate) async {
+    emit(LoadingState());
+    if (type == 1) {
+      await _myDB!.transaction((p0) async {
+        p0.query('''
+      INSERT INTO reservation
+      (reservatin_trip_id,
+      resrervation_user_id,
+      reservation_arrive_time)
+      VALUES
+      (?,?,?); 
+       ''', [tripId, userId, duration.toString()]).onError((error, stackTrace) {
+          throw Exception(error.toString());
+        });
+        p0.query('''
+       DELETE FROM temp_reservation
+       WHERE temp_reservation_id=?;
+       ''', [reservationID]).onError((error, stackTrace) {
+          throw Exception(error.toString());
+        });
+      }).then((value) {
+        MyData.reservationList.remove(reservationID);
+        emit(InsertedData('تم اضافة الحجز'));
+      }).catchError((error, stackTrace) {
+        emit(ErrorInsertingDataState('[insertReservation-1-] $error'));
+        print("Owis insertReservation-1- :($error) \n $stackTrace");
+      });
+    } else {
+      await _myDB!.transaction((p0) async {
+        p0.query('''
+      INSERT INTO reservation
+      (reservatin_trip_id,
+      resrervation_user_id,
+      reservation_arrive_time)
+      VALUES
+      (?,?,?); 
+       ''', [tripId, userId, duration.toString()]).onError((error, stackTrace) {
+          throw Exception(error.toString());
+        });
+        p0.query('''
+       UPDATE temp_reservation
+        SET
+        temp_reservation_date = ?
+        WHERE temp_reservation_id = ?;
+       ''', [reservationDate, reservationID]).onError((error, stackTrace) {
+          throw Exception(error.toString());
+        });
+      }).then((value) {
+        MyData.reservationList.remove(reservationID);
+        emit(InsertedData('تم اضافة الحجز'));
+      }).catchError((error, stackTrace) {
+        emit(ErrorInsertingDataState('[insertReservation-0-] $error'));
+        print("Owis insertReservation-0- :($error) \n $stackTrace");
+      });
+    }
+  }
+
+  Future<void> insertCancelReservation(
+      int type, int reservationID, DateTime reservationDate) async {
+    emit(LoadingState());
+    if (type == 1) {
+      await _myDB!.query('''
+       DELETE FROM temp_reservation
+       WHERE temp_reservation_id=?;
+       ''', [reservationID]).then((value) {
+        MyData.reservationList.remove(reservationID);
+        emit(InsertedData('تم حذف الحجز'));
+      }).catchError((error, stackTrace) {
+        emit(ErrorInsertingDataState('[insertCancelReservation-1-] $error'));
+        print("Owis insertCancelReservation-1- :($error) \n $stackTrace");
+      });
+    } else {
+      await _myDB!.query('''
+       UPDATE temp_reservation
+        SET
+        temp_reservation_date = ?
+        WHERE temp_reservation_id = ?;
+       ''', [reservationDate, reservationID]).then((value) {
+        MyData.reservationList.remove(reservationID);
+        emit(InsertedData('تم اضافة الحجز'));
+      }).catchError((error, stackTrace) {
+        emit(ErrorInsertingDataState('[insertReservation-0-] $error'));
+        print("Owis insertReservation-0- :($error) \n $stackTrace");
+      });
+    }
   }
 }

@@ -12,6 +12,16 @@ class LoadingState extends DatabaseStates {
   String get msg => 'LoadingState';
 }
 
+class LoadingTripState extends DatabaseStates {
+  @override
+  String get msg => 'LoadingTripState';
+}
+
+class SelectTripState extends DatabaseStates {
+  @override
+  String get msg => 'SelectTripState';
+}
+
 class Connected extends DatabaseStates {
   @override
   String get msg => 'Connected';
