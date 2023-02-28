@@ -44,16 +44,17 @@ onError() {
         child: SafeArea(
       child: Container(
         color: Colors.white,
-        padding: const EdgeInsets.fromLTRB(10, 20, 10, 20),
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Image.asset('assets/error.png'),
+              Image.asset('assets/error.gif'),
               const SizedBox(
                 height: 10,
               ),
               Text(
                 details.exception.toString(),
+                textAlign: TextAlign.justify,
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
               Container(
