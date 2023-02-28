@@ -106,67 +106,59 @@ class HomeScreen extends StatelessWidget {
     final int managerId = MyData.manager!.id;
     myDialog(
         context: context,
-        body: BlocBuilder<Database, DatabaseStates>(builder: (context, state) {
-          if (state is LoadingState) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Center(
-                child: Text(
-                  'ملفي الشخصي',
-                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Center(
+              child: Text(
+                'ملفي الشخصي',
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
               ),
-              Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      defaultTextFormField(
-                        controller: nameController,
-                        myHintText: 'اسمي',
-                        typeOfKeyboard: TextInputType.text,
-                        validate: (value) {
-                          if (value!.isEmpty) {
-                            return "يجب ادخال الاسم ";
+            ),
+            Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    defaultTextFormField(
+                      controller: nameController,
+                      myHintText: 'اسمي',
+                      typeOfKeyboard: TextInputType.text,
+                      validate: (value) {
+                        if (value!.isEmpty) {
+                          return "يجب ادخال الاسم ";
+                        }
+                        return null;
+                      },
+                    ),
+                    defaultTextFormField(
+                      controller: phoneNumberController,
+                      myHintText: 'رقم الهاتف',
+                      typeOfKeyboard: TextInputType.number,
+                      validate: (value) {
+                        if (value!.isEmpty) {
+                          return "يجب ادخال رقم الهاتف";
+                        }
+                        return null;
+                      },
+                    ),
+                    myNormalButton(
+                        onPressed: () {
+                          if (formKey.currentState!.validate()) {
+                            Manager m = Manager(
+                                id: managerId,
+                                name: nameController.text,
+                                phone: phoneNumberController.text);
+                            myDB.updateManager(m);
+                            // ignore: use_build_context_synchronously
+                            Navigator.pop(context);
                           }
-                          return null;
                         },
-                      ),
-                      defaultTextFormField(
-                        controller: phoneNumberController,
-                        myHintText: 'رقم الهاتف',
-                        typeOfKeyboard: TextInputType.number,
-                        validate: (value) {
-                          if (value!.isEmpty) {
-                            return "يجب ادخال رقم الهاتف";
-                          }
-                          return null;
-                        },
-                      ),
-                      myNormalButton(
-                          onPressed: () async {
-                            if (formKey.currentState!.validate()) {
-                              Manager m = Manager(
-                                  id: managerId,
-                                  name: nameController.text,
-                                  phone: phoneNumberController.text);
-                              await myDB.updateManager(m);
-                              // ignore: use_build_context_synchronously
-                              Navigator.pop(context);
-                            }
-                          },
-                          title: 'احفظ',
-                          icon: Icons.save_outlined)
-                    ],
-                  ))
-            ],
-          );
-        }));
-
+                        title: 'احفظ',
+                        icon: Icons.save_outlined)
+                  ],
+                ))
+          ],
+        ));
   }
 }
