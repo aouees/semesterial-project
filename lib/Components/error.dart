@@ -37,3 +37,40 @@ myError({required String msg, required VoidCallback onPressed}) {
     ),
   );
 }
+
+onError() {
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+        child: SafeArea(
+      child: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.fromLTRB(10, 20, 10, 20),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Image.asset('assets/error.png'),
+              const SizedBox(
+                height: 10,
+              ),
+              Text(
+                details.exception.toString(),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              Container(
+                padding: const EdgeInsets.all(10.0),
+                margin: const EdgeInsets.only(top: 15),
+                decoration: BoxDecoration(border: Border.all(color: Colors.red)),
+                child: const Text(
+                  'نعتذر عن هذا الخطأ : قم بارسال لقطة شاشة لهذه الواجهة لفريق التطوير ',
+                  style: TextStyle(fontSize: 20, color: Colors.red),
+                  textAlign: TextAlign.justify,
+                  textDirection: TextDirection.rtl,
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    ));
+  };
+}

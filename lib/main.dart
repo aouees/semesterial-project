@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'Backend/DB/database.dart';
 import '../Screens/home_screen.dart';
+import 'Components/error.dart';
 
 void main() {
+  onError();
   runApp(const MyApp());
 }
 
