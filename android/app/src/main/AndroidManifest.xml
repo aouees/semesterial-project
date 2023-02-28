@@ -2,7 +2,7 @@
     package="com.owisAlhammoud.semesterial_project_admin">
 
     <application
-        android:label="semesterial_project_admin"
+        android:label="Bus Book"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -31,4 +31,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
+    <uses-permission android:name="android.permission.INTERNET" />
+
 </manifest>
