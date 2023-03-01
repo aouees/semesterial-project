@@ -62,6 +62,9 @@ class _ReservationManagementScreenState extends State<ReservationManagementScree
                     myDB.getReservation(_dateTime.toUtc(), _type);
                   });
             }
+            if (MyData.reservationList.isEmpty) {
+              return onNoDataFound('لا يوجد بيانات قم بالبحث عن بيانات في موعد آخر');
+            }
             List<int> myKeys = MyData.reservationList.keys.toList();
             return ListView.builder(
               itemCount: MyData.reservationList.length,

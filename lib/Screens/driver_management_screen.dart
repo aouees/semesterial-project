@@ -55,6 +55,8 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                   onPressed: () {
                     myDB.getDrivers();
                   });
+            } else if (MyData.driversList.isEmpty) {
+              return onNoDataFound('لا يوجد بيانات بعد , قم باضافة بيانات');
             } else {
               return ListView.builder(
                 itemCount: MyData.driversList.length,

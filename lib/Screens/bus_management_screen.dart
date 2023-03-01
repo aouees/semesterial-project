@@ -59,6 +59,9 @@ class _BusManagementScreenState extends State<BusManagementScreen> {
                   myDB.getBus();
                 });
           }
+          if (MyData.busList.isEmpty) {
+            return onNoDataFound('لا يوجد بيانات قم باضافة بيانات');
+          }
           return ListView.builder(
             itemCount: MyData.busList.length,
             itemBuilder: (context, index) {

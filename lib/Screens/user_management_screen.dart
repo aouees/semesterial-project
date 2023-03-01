@@ -51,6 +51,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   onPressed: () {
                     myDB.getUser();
                   });
+            } else if (MyData.userList.isEmpty) {
+              return onNoDataFound('لا يوجد مستخدمين حاليا');
             } else {
               return ListView.builder(
                 itemCount: MyData.userList.length,

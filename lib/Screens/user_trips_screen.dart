@@ -51,6 +51,8 @@ class _UserTripsScreenState extends State<UserTripsScreen> {
                   onPressed: () {
                     myDB.getUserTrips(widget.user);
                   });
+            } else if (MyData.tripList.isEmpty) {
+              return onNoDataFound('لا يوجد حجوزات لهذا المستخدم');
             } else {
               return ListView.builder(
                 itemCount: MyData.tripList.length,

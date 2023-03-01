@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import '../Components/error.dart';
 import '../Backend/DB/db_states.dart';
 import '../Components/loading.dart';
@@ -18,8 +19,24 @@ import 'package:smart_grid_view_nls/smart_grid_view_nls.dart';
 import 'bus_management_screen.dart';
 import 'reservation_management_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    stopSplashScreen();
+    super.initState();
+  }
+
+  stopSplashScreen() async {
+    await Future.delayed(const Duration(seconds: 3));
+    FlutterNativeSplash.remove();
+  }
 
   @override
   Widget build(BuildContext context) {

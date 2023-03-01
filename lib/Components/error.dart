@@ -75,3 +75,24 @@ onError() {
     ));
   };
 }
+
+onNoDataFound(String msg) {
+  return Center(
+      child: Column(
+    children: [
+      Expanded(
+        flex: 2,
+        child: Image.asset(
+          "assets/nodata.png",
+        ),
+      ),
+      Expanded(
+        flex: 1,
+        child: Text(
+          msg,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      )
+    ],
+  ));
+}
